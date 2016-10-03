@@ -44,6 +44,6 @@
     "webpack-dev-server": "^1.7.0"
   },
   "dependencies": {
-    "webfontloader": "^1.6.24"
+    "webfontloader": "^1.6.26"
   }
 }
