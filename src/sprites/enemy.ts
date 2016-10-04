@@ -4,6 +4,7 @@ export class Enemy extends Phaser.Sprite {
     private destination;
     private mode;
     private speed = 0;
+    private playerBody;
     constructor({ game, x, y, asset }) {
         super(game, x, y, asset)
 
@@ -22,6 +23,22 @@ export class Enemy extends Phaser.Sprite {
             this.body.velocity.x = +this.speed;
             if(this.body.x > this.game.world.width)this.destination = 0;
         }
+        if(this.playerBody && this.mode == 'wave'){
+            if(this.body.x <= this.playerBody.x)this.body.velocity.x = +this.speed;
+            else if(this.body.x >= this.playerBody.x)this.body.velocity.x = -this.speed;
+            else {
+
+            }
+        }
+    }
+
+    followPlayer(body){
+        this.playerBody = body;
+    }
+
+    activate(mode){
+        this.mode = mode;
+        console.log(this.mode);
     }
 
 }

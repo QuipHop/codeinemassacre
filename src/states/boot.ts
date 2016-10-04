@@ -9,7 +9,7 @@ export class BootState extends Phaser.State {
         this.stage.backgroundColor = '#EDEEC9'
         this.fontsReady = false
         this.fontsLoaded = this.fontsLoaded.bind(this)
-        // this.game.stage.smoothed = false
+        this.game.stage.smoothed = false
     }
 
     preload() {
@@ -26,6 +26,7 @@ export class BootState extends Phaser.State {
         this.load.image('loaderBg', './assets/images/loader-bg.png')
         this.load.image('loaderBar', './assets/images/loader-bar.png')
         this.load.image('bg', './assets/images/bg.jpg')
+        this.load.image('guy', './assets/images/guy.png')
 
     }
 
