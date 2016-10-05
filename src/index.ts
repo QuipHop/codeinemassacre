@@ -8,17 +8,17 @@ import {GameState} from './states/game.ts'
 
 class Game extends Phaser.Game {
 
-  constructor () {
-    let width = 160;
-    let height = 144;
+    constructor() {
+        let width = 160;
+        let height = 144;
 
-    super(width, height, Phaser.CANVAS, 'content', null)
-    this.state.add('Boot', BootState, false)
-    this.state.add('Splash', SplashState, false)
-    this.state.add('Game', GameState, false)
+        super(width, height, Phaser.CANVAS, 'content', null)
+        this.state.add('Boot', BootState, false)
+        this.state.add('Splash', SplashState, false)
+        this.state.add('Game', GameState, false)
 
-    this.state.start('Boot')
-  }
+        this.state.start('Boot')
+    }
 
 }
 

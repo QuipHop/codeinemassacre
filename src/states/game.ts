@@ -41,6 +41,7 @@ export class GameState extends Phaser.State {
             y: this.game.world.centerY,
             asset: 'guy'
         })
+        this.modeSignal.add(this.player.onModeChanged, this.player);
         this.player.anchor.setTo(0.5)
         this.game.physics.enable(this.player, Phaser.Physics.ARCADE);
         this.player.body.collideWorldBounds = true;
@@ -55,20 +56,18 @@ export class GameState extends Phaser.State {
         this.spawnMobs();
         this.game.physics.arcade.gravity.y = 1000;
 
-
-
-    }
-
-    render() {
-        this.game.debug.body(this.player);
-        // if (window['__DEV__']) {
-        //     this.game.debug.spriteInfo(this.player, 32, 32)
-        // }
     }
 
     update() {
         this.game.physics.arcade.collide(this.player, this.ground);
         this.game.physics.arcade.collide(this.enemies, this.ground);
+        if (this.mode == 'wave') {
+            this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
+                enemy.destroy();
+                bullet.kill();
+            }, null, this);
+        }
+
     }
 
     spawnMobs() {
@@ -85,7 +84,15 @@ export class GameState extends Phaser.State {
         }
     }
 
-    sendMode(){
+    sendMode() {
 
+    }
+
+    render() {
+        // if (window['__DEV__']) {
+        // this.game.debug.spriteInfo(this.player, 32, 32)
+        this.game.debug.body(this.player);
+        this.player.weapon.debug(-100, 1000, true);
+        // }
     }
 }
