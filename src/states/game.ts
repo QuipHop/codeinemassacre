@@ -11,6 +11,7 @@ export class GameState extends Phaser.State {
     mode: string = 'normal';
     modeBtn;
     modeSignal;
+    text;
     init() { }
     preload() { }
 
@@ -55,6 +56,7 @@ export class GameState extends Phaser.State {
         this.enemies.enableBody = true;
         this.spawnMobs();
         this.game.physics.arcade.gravity.y = 1000;
+        this.text = this.game.add.text(80, 80,'GRAB SIZZURP', {font: "12px 'gameboy'", fill: '#5930ba', align: 'center' , backgroundColor: "#faa8d0"})
 
     }
 
