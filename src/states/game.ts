@@ -12,6 +12,8 @@ export class GameState extends Phaser.State {
     modeBtn;
     modeSignal;
     text;
+    syzItems;
+    wave: number
     init() { }
     preload() { }
 
@@ -56,18 +58,32 @@ export class GameState extends Phaser.State {
         this.enemies.enableBody = true;
         this.spawnMobs();
         this.game.physics.arcade.gravity.y = 1000;
-        this.text = this.game.add.text(80, 80,'GRAB SIZZURP', {font: "12px 'gameboy'", fill: '#5930ba', align: 'center' , backgroundColor: "#faa8d0"})
-
+        this.text = this.game.add.text(80, 80, 'GRAB SIZZURP !', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
+        this.text._pulseTween = this.game.add.tween(this.text).to({ fontSize: 13 }, 600, Phaser.Easing.Quadratic.In, true, 0, -1);
+        this.syzItems = this.game.add.group();
+        this.syzItems.enableBody = true;
+        this.spawnItem();
     }
 
     update() {
         this.game.physics.arcade.collide(this.player, this.ground);
         this.game.physics.arcade.collide(this.enemies, this.ground);
+        this.game.physics.arcade.collide(this.syzItems, this.ground);
         if (this.mode == 'wave') {
+            this.text.visible = false;
+            this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer);
             this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
                 enemy.destroy();
                 bullet.kill();
             }, null, this);
+        } else {
+            this.game.physics.arcade.overlap(this.player, this.syzItems, (player, item) => {
+                item.kill();
+                this.mode = 'wave';
+                this.modeSignal.dispatch(this.mode);
+                console.log(this.player.cursors);
+            });
+            this.text.visible = true;
         }
 
     }
@@ -96,5 +112,15 @@ export class GameState extends Phaser.State {
         this.game.debug.body(this.player);
         this.player.weapon.debug(-100, 1000, true);
         // }
+    }
+
+    hitPlayer(player, monster) {
+
+    }
+
+    spawnItem() {
+        let _item = this.syzItems.create(this.game.rnd.integerInRange(0, this.world.width), 0, 'syz');
+        _item.body.bounce.set(0.3);
+        _item.anchor.setTo(0.5);
     }
 }
