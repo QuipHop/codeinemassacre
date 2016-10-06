@@ -11,9 +11,9 @@ export class GameState extends Phaser.State {
     mode: string = 'normal';
     modeBtn;
     modeSignal;
-    text;
+    label;
     syzItems;
-    wave: number
+    wave: number = 1;
     init() { }
     preload() { }
 
@@ -56,10 +56,11 @@ export class GameState extends Phaser.State {
 
         this.enemies = this.game.add.group()
         this.enemies.enableBody = true;
-        this.spawnMobs();
+        this.spawnMobs(10, false);
         this.game.physics.arcade.gravity.y = 1000;
-        this.text = this.game.add.text(80, 80, 'GRAB SIZZURP !', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
-        this.text._pulseTween = this.game.add.tween(this.text).to({ fontSize: 13 }, 600, Phaser.Easing.Quadratic.In, true, 0, -1);
+        this.label = this.game.add.text(this.game.world.centerX, 80, 'GRAB SIZZURP !', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
+        this.label.anchor.setTo(0.5);
+        this.label._pulseTween = this.game.add.tween(this.label).to({ fontSize: 13 }, 600, Phaser.Easing.Quadratic.In, true, 0, -1);
         this.syzItems = this.game.add.group();
         this.syzItems.enableBody = true;
         this.spawnItem();
@@ -70,26 +71,26 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
         if (this.mode == 'wave') {
-            this.text.visible = false;
+            this.label.text = "WAVE " + this.wave
             this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer);
             this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
-                enemy.destroy();
+                enemy.kill();
                 bullet.kill();
+                this.checkAlive();
             }, null, this);
         } else {
             this.game.physics.arcade.overlap(this.player, this.syzItems, (player, item) => {
                 item.kill();
                 this.mode = 'wave';
                 this.modeSignal.dispatch(this.mode);
-                console.log(this.player.cursors);
             });
-            this.text.visible = true;
         }
 
     }
 
-    spawnMobs() {
-        for (let i = 0; i < 10; i++) {
+    spawnMobs(value: number, res: boolean) {
+        this.enemies.removeAll();
+        for (let i = 0; i < value; i++) {
             let enemy = this.enemies.add(new Enemy({
                 game: this.game,
                 x: this.game.rnd.integerInRange(0, this.game.world.width),
@@ -122,5 +123,13 @@ export class GameState extends Phaser.State {
         let _item = this.syzItems.create(this.game.rnd.integerInRange(0, this.world.width), 0, 'syz');
         _item.body.bounce.set(0.3);
         _item.anchor.setTo(0.5);
+    }
+
+    checkAlive() {
+        if (this.enemies.countLiving() == 0) {
+            this.mode = 'normal';
+            this.spawnMobs(7 * this.wave, true);
+            this.spawnItem();
+        }
     }
 }
