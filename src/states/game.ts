@@ -21,8 +21,9 @@ export class GameState extends Phaser.State {
         this.modeSignal = new Phaser.Signal();
         this.modeBtn = this.game.input.keyboard.addKey(Phaser.Keyboard.M);
         this.modeBtn.onDown.add(() => {
-            this.mode == 'normal' ? this.mode = 'wave' : this.mode = 'normal';
-            this.modeSignal.dispatch(this.mode);
+            window['__DEV__'] == undefined ? window['__DEV__'] = true : window['__DEV__'] = undefined;
+            // this.mode == 'normal' ? this.mode = 'wave' : this.mode = 'normal';
+            // this.modeSignal.dispatch(this.mode);
         });
 
         this.game.world.setBounds(0, 0, 500, 180)
@@ -50,7 +51,7 @@ export class GameState extends Phaser.State {
             bgs: [bg2, bg3]
         })
         this.modeSignal.add(this.player.onModeChanged, this.player);
-        this.player.anchor.setTo(0.5)
+        this.player.anchor.setTo(0.5, 0.5)
         this.game.physics.enable(this.player, Phaser.Physics.ARCADE);
         this.player.body.collideWorldBounds = true;
         // this.player.body.gravity.y = 1000;
@@ -61,7 +62,7 @@ export class GameState extends Phaser.State {
 
         this.enemies = this.game.add.group()
         this.enemies.enableBody = true;
-        this.spawnMobs(10, false);
+        this.spawnMobs(1, false);
         this.game.physics.arcade.gravity.y = 1000;
         this.label = this.game.add.text(this.game.world.centerX, 80, ' GRAB SIZZURP ! ', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
         this.label.anchor.setTo(0.5);
@@ -113,15 +114,16 @@ export class GameState extends Phaser.State {
     }
 
     render() {
-        // if (window['__DEV__']) {
-        // this.game.debug.spriteInfo(this.player, 32, 32)
-        this.game.debug.body(this.player);
-        this.player.weapon.debug(-100, 1000, true);
-        // }
+        if (window['__DEV__']) {
+            this.game.debug.body(this.player);
+            this.player.weapon.debug(-100, 1000, true);
+        }
     }
 
     hitPlayer(player, monster) {
-
+        if(monster.attack){
+            console.log("HIT");
+        }
     }
 
     spawnItem() {

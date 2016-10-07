@@ -10,6 +10,7 @@ export class Player extends Phaser.Sprite {
     private mode;
     private speed = 150;
     private bgs;
+    public health = 3;
     constructor({ game, x, y, asset, bgs }) {
         super(game, x, y, asset)
         this.bgs = bgs;
@@ -29,6 +30,9 @@ export class Player extends Phaser.Sprite {
         this.weapon.alpha = 0;
         this.weapon.bulletGravity.y = -1000;
         this.weapon.bullets.setAll('alpha', 0);
+        this.weapon.onFire.add(() => {
+            this.game.camera.shake(0.02, 50);
+        })
     }
 
     update() {
@@ -48,7 +52,7 @@ export class Player extends Phaser.Sprite {
             this.sendSignal();
             this.body.velocity.x = +this.speed;
             this.flipSprite(1);
-            if (!this.game.camera.atLimit.x){
+            if (!this.game.camera.atLimit.x) {
                 this.bgs[0].tilePosition.x -= 0.3;
                 this.bgs[1].tilePosition.x -= 0.1;
             }
