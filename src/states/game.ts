@@ -27,7 +27,11 @@ export class GameState extends Phaser.State {
 
         this.game.world.setBounds(0, 0, 500, 180)
         this.game.physics.startSystem(Phaser.Physics.ARCADE)
-        this.bg = this.game.add.tileSprite(0, 0, 500, 180, 'bg')
+        let bg4 = this.game.add.tileSprite(0, 0, 500, 180, 'bg4')
+        bg4.fixedToCamera = true;
+        let bg3 = this.game.add.tileSprite(0, 0, 500, 180, 'bg3')
+        let bg2 = this.game.add.tileSprite(-20, 0, 500, 180, 'bg2')
+        let bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1')
         //ground
         this.game.create.texture('endTexture', ['000'], 1, 1, 1)
         this.ground = this.game.add.sprite(-100, this.game.world.height - 10, 'endTexture');
@@ -42,7 +46,8 @@ export class GameState extends Phaser.State {
             game: this.game,
             x: this.game.world.centerX,
             y: this.game.world.centerY,
-            asset: 'guy'
+            asset: 'guy',
+            bgs: [bg2, bg3]
         })
         this.modeSignal.add(this.player.onModeChanged, this.player);
         this.player.anchor.setTo(0.5)
@@ -52,13 +57,13 @@ export class GameState extends Phaser.State {
         this.player.body.maxVelocity.y = 500;
         // this.player.body.setSize(20, 32, 5, 16);
         this.game.add.existing(this.player)
-        this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER)
+        this.game.camera.follow(this.player, Phaser.Camera.SHAKE_BOTH)
 
         this.enemies = this.game.add.group()
         this.enemies.enableBody = true;
         this.spawnMobs(10, false);
         this.game.physics.arcade.gravity.y = 1000;
-        this.label = this.game.add.text(this.game.world.centerX, 80, 'GRAB SIZZURP !', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
+        this.label = this.game.add.text(this.game.world.centerX, 80, ' GRAB SIZZURP ! ', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
         this.label.anchor.setTo(0.5);
         this.label._pulseTween = this.game.add.tween(this.label).to({ fontSize: 13 }, 600, Phaser.Easing.Quadratic.In, true, 0, -1);
         this.syzItems = this.game.add.group();
@@ -71,7 +76,7 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
         if (this.mode == 'wave') {
-            this.label.text = "WAVE " + this.wave
+            this.label.text = " WAVE " + this.wave
             this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer);
             this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
                 enemy.kill();
@@ -128,6 +133,8 @@ export class GameState extends Phaser.State {
     checkAlive() {
         if (this.enemies.countLiving() == 0) {
             this.mode = 'normal';
+            this.modeSignal.dispatch(this.mode);
+            this.wave++;
             this.spawnMobs(7 * this.wave, true);
             this.spawnItem();
         }
