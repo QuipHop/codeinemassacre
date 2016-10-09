@@ -8,6 +8,8 @@ export class Enemy extends Phaser.Sprite {
     public attack: boolean = false;
     public attackSpeed = 1000;
     private attackTimer;
+    public attackTween;
+    public isAttacking: bool = false;
     constructor({ game, x, y, asset }) {
         super(game, x, y, asset)
 
@@ -16,12 +18,15 @@ export class Enemy extends Phaser.Sprite {
         this.speed = this.game.rnd.integerInRange(20, 50);
         this.destination = this.game.rnd.integerInRange(0, 1);
         this.tint = Math.random() * 0xffffff;
-        this.attackTimer = this.game.time.create(false);
-        this.attackTimer.loop(Phaser.Timer.SECOND * 1, () => {
-            console.log("ATTACK");
-            this.attack = true;
-            this.attackTimer.stop();
-        }, this);
+        this.attackTween = this.game.add.tween(this).to({ y: this.y + 5 }, 500, Phaser.Easing.Quadratic.In, false, 400, 0, true);
+        this.attackTween.onStart.add(() => { this.isAttacking = true });
+        this.attackTween.onComplete.add(() => { this.isAttacking = false });
+        // this.attackTimer = this.game.time.create(false);
+        // this.attackTimer.loop(Phaser.Timer.SECOND * 1, () => {
+        //     console.log("ATTACK");
+        //     this.attack = true;
+        //     this.attackTimer.stop();
+        // }, this);
     }
 
     update() {
@@ -38,11 +43,14 @@ export class Enemy extends Phaser.Sprite {
             } else if (this.body.position.x >= this.playerBody.position.x + 10) {
                 this.body.velocity.x = -this.speed;
             } else {
-                if (!this.attackTimer.running) {
-                    this.attackTimer.start();
-                } else {
-                    this.attack = false;
+                if (!this.attackTween.isRunning) {
+                    this.attackTween.start();
                 }
+                // if (!this.attackTimer.running) {
+                //     this.attackTimer.start();
+                // } else {
+                //     this.attack = false;
+                // }
             }
         }
     }

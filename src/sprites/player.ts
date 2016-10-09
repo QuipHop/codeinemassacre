@@ -11,6 +11,9 @@ export class Player extends Phaser.Sprite {
     private speed = 150;
     private bgs;
     public health = 3;
+    public hitTick = 500;
+    public walkAnimation_normal;
+    public walkAnimation_trip;
     constructor({ game, x, y, asset, bgs }) {
         super(game, x, y, asset)
         this.bgs = bgs;
@@ -21,7 +24,6 @@ export class Player extends Phaser.Sprite {
         this.signal = new Phaser.Signal();
         let _sprite = this.game.create.texture('bulletTexture', ['0,0,0,0'], 2, 40, 0)
         // _sprite.alpha = 0;
-        console.log(_sprite);
         this.weapon = game.add.weapon(1, _sprite);
         // this.weapon.setBulletFrames(0, 80, true);
         this.weapon.bulletKillType = Phaser.Weapon.KILL_CAMERA_BOUNDS;
@@ -32,7 +34,13 @@ export class Player extends Phaser.Sprite {
         this.weapon.bullets.setAll('alpha', 0);
         this.weapon.onFire.add(() => {
             this.game.camera.shake(0.02, 50);
+            this.playAnimation('fire');
         })
+        this.animations.add('normal_run');
+        this.animations.add('normal_jump');
+        this.animations.add('trip_run');
+        this.animations.add('trip_jump');
+        this.animations.add('trip_fire');
     }
 
     update() {
@@ -45,9 +53,9 @@ export class Player extends Phaser.Sprite {
                 this.bgs[0].tilePosition.x += 0.3;
                 this.bgs[1].tilePosition.x += 0.1;
             }
-
+            this.playAnimation('run');
         }
-        if (this.cursors.right.isDown) {
+        else if (this.cursors.right.isDown) {
             this.scale.x = Math.abs(this.scale.x)
             this.sendSignal();
             this.body.velocity.x = +this.speed;
@@ -56,15 +64,19 @@ export class Player extends Phaser.Sprite {
                 this.bgs[0].tilePosition.x -= 0.3;
                 this.bgs[1].tilePosition.x -= 0.1;
             }
+            this.playAnimation('run');
         }
         if (this.cursors.up.isDown && this.body.touching.down && this.game.time.now > this.jumpTimer) {
             this.body.velocity.y = -400;
             this.jumpTimer = this.game.time.now + 750;
+            this.playAnimation('jump');
         }
         if (this.fireButton.isDown) {
             this.fire(this);
         }
-
+        if (this.cursors.right.isUp && this.cursors.left.isUp && this.cursors.up.isUp && !this.animations.isPlaying && this.key != 'trip_fire') {
+            this.animations.frame = 0;
+        }
     }
 
     fire() {
@@ -84,8 +96,33 @@ export class Player extends Phaser.Sprite {
             this.direction *= -1;
         }
     }
-
+    playAnimation(anim: string) {
+        switch (anim) {
+            case 'run': if (this.mode == 'wave') {
+                if (!this.body.touching.down) break;
+                if (this.key != 'trip_run') this.loadTexture('trip_run');
+                this.animations.play('trip_run', 8);
+            } else {
+                if (this.key != 'normal_run') this.loadTexture('normal_run');
+                this.animations.play('normal_run', 8);
+            }
+                break;
+            case 'jump': if (this.mode == 'wave') {
+                if (this.key != 'trip_jump') this.loadTexture('trip_jump');
+                this.animations.play('trip_jump', 8);
+            } else {
+                if (this.key != 'normal_jump') this.loadTexture('normal_jump');
+                this.animations.play('normal_jump', 8);
+            }
+                break;
+            case 'fire':
+                if (this.key != 'trip_fire') this.loadTexture('trip_fire');
+                this.animations.play('trip_fire', 10);
+                break;
+        }
+    }
     onModeChanged(mode) {
         this.mode = mode;
+        this.mode == 'wave' ? this.loadTexture('trip_run') : this.loadTexture('normal_run');
     }
 }

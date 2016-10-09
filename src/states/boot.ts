@@ -32,7 +32,11 @@ export class BootState extends Phaser.State {
         this.load.image('bg2', './assets/images/bg2.png')
         this.load.image('bg3', './assets/images/bg3.png')
         this.load.image('bg4', './assets/images/bg4.png')
-
+        this.load.spritesheet('trip_fire', './assets/images/trip_fire.png', 35, 40)
+        this.load.spritesheet('trip_run', './assets/images/trip_run.png', 27, 42)
+        this.load.spritesheet('trip_jump', './assets/images/trip_jump.png', 26, 46)
+        this.load.spritesheet('normal_jump', './assets/images/normal_jump.png', 23, 46)
+        this.load.spritesheet('normal_run', './assets/images/normal_run.png', 29, 41)
     }
 
     render() {
