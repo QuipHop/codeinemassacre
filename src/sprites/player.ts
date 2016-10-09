@@ -8,12 +8,16 @@ export class Player extends Phaser.Sprite {
     private weapon;
     public signal;
     private mode;
-    private speed = 150;
+    private speed: number = 150;
     private bgs;
-    public health = 3;
+    public health: number = 3;
+    public maxHealth = 3;
+    public healthGroup;
     public hitTick = 500;
     public walkAnimation_normal;
     public walkAnimation_trip;
+    public hitTween;
+    public gameOver: boolean = false;
     constructor({ game, x, y, asset, bgs }) {
         super(game, x, y, asset)
         this.bgs = bgs;
@@ -28,55 +32,70 @@ export class Player extends Phaser.Sprite {
         // this.weapon.setBulletFrames(0, 80, true);
         this.weapon.bulletKillType = Phaser.Weapon.KILL_CAMERA_BOUNDS;
         this.weapon.bulletSpeed = 1000;
-        this.weapon.fireRate = 1000;
+        this.weapon.fireRate = 800;
         this.weapon.alpha = 0;
         this.weapon.bulletGravity.y = -1000;
         this.weapon.bullets.setAll('alpha', 0);
         this.weapon.onFire.add(() => {
             this.game.camera.shake(0.02, 50);
             this.playAnimation('fire');
+            this.game.sound.play('reload');
+            setTimeout(()=>{
+                this.game.sound.play('reload');
+            }, 500);
         })
         this.animations.add('normal_run');
         this.animations.add('normal_jump');
         this.animations.add('trip_run');
         this.animations.add('trip_jump');
         this.animations.add('trip_fire');
+        this.hitTween = this.game.add.tween(this).to({ alpha: 0 }, 100, Phaser.Linear, false, 0, 5, true);
+        this.healthGroup = this.game.add.group();
+        for (let i = 0; i < this.health; i++) {
+            let live = this.healthGroup.create(5 + i * 15, 10, 'syz2');
+            live.anchor.setTo(0.5, 0.5);
+
+        }
+        this.healthGroup.fixedToCamera = true;
     }
 
     update() {
-        this.body.velocity.x = 0;
-        if (this.cursors.left.isDown) {
-            this.sendSignal();
-            this.body.velocity.x = -this.speed;
-            this.flipSprite(-1);
-            if (!this.game.camera.atLimit.x) {
-                this.bgs[0].tilePosition.x += 0.3;
-                this.bgs[1].tilePosition.x += 0.1;
+        if (!this.gameOver) {
+            this.body.velocity.x = 0;
+            if (this.cursors.left.isDown) {
+                this.sendSignal();
+                this.body.velocity.x = -this.speed;
+                this.flipSprite(-1);
+                if (!this.game.camera.atLimit.x) {
+                    this.bgs[0].tilePosition.x += 0.3;
+                    this.bgs[1].tilePosition.x += 0.1;
+                }
+                this.playAnimation('run');
             }
-            this.playAnimation('run');
-        }
-        else if (this.cursors.right.isDown) {
-            this.scale.x = Math.abs(this.scale.x)
-            this.sendSignal();
-            this.body.velocity.x = +this.speed;
-            this.flipSprite(1);
-            if (!this.game.camera.atLimit.x) {
-                this.bgs[0].tilePosition.x -= 0.3;
-                this.bgs[1].tilePosition.x -= 0.1;
+            else if (this.cursors.right.isDown) {
+                this.scale.x = Math.abs(this.scale.x)
+                this.sendSignal();
+                this.body.velocity.x = +this.speed;
+                this.flipSprite(1);
+                if (!this.game.camera.atLimit.x) {
+                    this.bgs[0].tilePosition.x -= 0.3;
+                    this.bgs[1].tilePosition.x -= 0.1;
+                }
+                this.playAnimation('run');
             }
-            this.playAnimation('run');
+            if (this.cursors.up.isDown && this.body.touching.down && this.game.time.now > this.jumpTimer) {
+                this.body.velocity.y = -400;
+                this.jumpTimer = this.game.time.now + 750;
+                this.playAnimation('jump');
+            }
+            if (this.fireButton.isDown) {
+                this.fire(this);
+            }
+            if (this.cursors.right.isUp && this.cursors.left.isUp && this.cursors.up.isUp && !this.animations.isPlaying && this.key != 'trip_fire') {
+                this.animations.frame = 0;
+            }
         }
-        if (this.cursors.up.isDown && this.body.touching.down && this.game.time.now > this.jumpTimer) {
-            this.body.velocity.y = -400;
-            this.jumpTimer = this.game.time.now + 750;
-            this.playAnimation('jump');
-        }
-        if (this.fireButton.isDown) {
-            this.fire(this);
-        }
-        if (this.cursors.right.isUp && this.cursors.left.isUp && this.cursors.up.isUp && !this.animations.isPlaying && this.key != 'trip_fire') {
-            this.animations.frame = 0;
-        }
+
     }
 
     fire() {
@@ -107,7 +126,9 @@ export class Player extends Phaser.Sprite {
                 this.animations.play('normal_run', 8);
             }
                 break;
-            case 'jump': if (this.mode == 'wave') {
+            case 'jump':
+            this.game.sound.play('jump');
+            if (this.mode == 'wave') {
                 if (this.key != 'trip_jump') this.loadTexture('trip_jump');
                 this.animations.play('trip_jump', 8);
             } else {
@@ -116,6 +137,7 @@ export class Player extends Phaser.Sprite {
             }
                 break;
             case 'fire':
+                this.game.sound.play('shot');
                 if (this.key != 'trip_fire') this.loadTexture('trip_fire');
                 this.animations.play('trip_fire', 10);
                 break;
@@ -124,5 +146,26 @@ export class Player extends Phaser.Sprite {
     onModeChanged(mode) {
         this.mode = mode;
         this.mode == 'wave' ? this.loadTexture('trip_run') : this.loadTexture('normal_run');
+    }
+
+    takeHit(player, monster) {
+        if (monster.isAttacking && this.game.time.now - this.hitTick > 1000) {
+            this.game.sound.play('hitmob');
+            this.hitTween.start();
+            // console.log(this.healthGroup.countLiving(), this.healthGroup);
+            let live = this.healthGroup.getAt(this.healthGroup.countLiving() - 1);
+            this.hitTick = this.game.time.now;
+            if (live) live.kill();
+            if (this.healthGroup.countLiving() < 1) {
+                this.gameOver = true;
+                return false;
+            }
+        }
+    }
+
+    heal() {
+        this.game.sound.play('pickup');
+        if (this.healthGroup.countLiving() >= 3) return false;
+        let live = this.healthGroup.getFirstDead().revive();
     }
 }

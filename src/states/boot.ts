@@ -20,7 +20,7 @@ export class BootState extends Phaser.State {
         //     active: this.fontsLoaded
         // })
 
-        let text = this.add.text(this.world.centerX, this.world.centerY, 'loading fonts', { font: "16px 'gameboy'", fill: '#dddddd', align: 'center' })
+        let text = this.add.text(this.world.centerX, this.world.centerY, 'LOADING', { font: "16px 'gameboy'", fill: '#dddddd', align: 'center' })
         text.anchor.setTo(0.5, 0.5)
 
         this.load.image('loaderBg', './assets/images/loader-bg.png')
@@ -28,6 +28,7 @@ export class BootState extends Phaser.State {
         this.load.image('bg', './assets/images/bg.jpg')
         this.load.image('guy', './assets/images/guy.png')
         this.load.image('syz', './assets/images/syz.png')
+        this.load.image('syz2', './assets/images/syz2.png')
         this.load.image('bg1', './assets/images/bg1.png')
         this.load.image('bg2', './assets/images/bg2.png')
         this.load.image('bg3', './assets/images/bg3.png')
@@ -37,6 +38,11 @@ export class BootState extends Phaser.State {
         this.load.spritesheet('trip_jump', './assets/images/trip_jump.png', 26, 46)
         this.load.spritesheet('normal_jump', './assets/images/normal_jump.png', 23, 46)
         this.load.spritesheet('normal_run', './assets/images/normal_run.png', 29, 41)
+        this.load.audio('hitmob', './assets/sounds/hitmob.mp3')
+        this.load.audio('pickup', './assets/sounds/pickup.mp3')
+        this.load.audio('reload', './assets/sounds/reload.mp3')
+        this.load.audio('shot', './assets/sounds/shot.mp3')
+        this.load.audio('jump', './assets/sounds/jump.mp3')
     }
 
     render() {

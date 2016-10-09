@@ -8,13 +8,18 @@ export class GameState extends Phaser.State {
     bg;
     ground;
     enemies;
-    mode: string = 'normal';
+    mode: string;
     modeBtn;
     modeSignal;
     label;
     syzItems;
-    wave: number = 1;
-    init() { }
+    wave: number ;
+    gameEnded: boolean ;
+    init() {
+        this.wave = 1;
+        this.mode = 'normal';
+        this.gameEnded = false;
+    }
     preload() { }
 
     create() {
@@ -62,7 +67,7 @@ export class GameState extends Phaser.State {
 
         this.enemies = this.game.add.group()
         this.enemies.enableBody = true;
-        this.spawnMobs(1, false);
+        this.spawnMobs(5, false);
         this.game.physics.arcade.gravity.y = 1000;
         this.label = this.game.add.text(this.game.world.centerX, 80, ' GRAB SIZZURP ! ', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
         this.label.anchor.setTo(0.5);
@@ -76,23 +81,27 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.player, this.ground);
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
-        if (this.mode == 'wave') {
-            this.label.text = " WAVE " + this.wave
-            this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
-            this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
-                enemy.kill();
-                bullet.kill();
-                this.checkAlive();
-            }, null, this);
+        if (!this.gameEnded) {
+            if (this.mode == 'wave') {
+                this.label.text = " WAVE " + this.wave
+                this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
+                this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
+                    this.game.sound.play('hitmob');
+                    enemy.kill();
+                    bullet.kill();
+                    this.checkAlive();
+                }, null, this);
 
-        } else {
-            this.game.physics.arcade.overlap(this.player, this.syzItems, (player, item) => {
-                item.kill();
-                this.mode = 'wave';
-                this.modeSignal.dispatch(this.mode);
-            });
+            } else {
+                this.label.text = " GRAB SIZZURP ! "
+                this.game.physics.arcade.overlap(this.player, this.syzItems, (player, item) => {
+                    item.kill();
+                    this.player.heal();
+                    this.mode = 'wave';
+                    this.modeSignal.dispatch(this.mode);
+                });
+            }
         }
-
     }
 
     spawnMobs(value: number, res: boolean) {
@@ -122,17 +131,19 @@ export class GameState extends Phaser.State {
     }
 
     hitPlayer(player, monster) {
-        if(monster.isAttacking && this.game.time.now - this.player.hitTick > 1000){
-            console.log("HIT");
-            this.player.hitTick = this.game.time.now ;
+        if (player.takeHit(player, monster) == false) {
+            this.gameEnded = true;
+            if(!localStorage.getItem('highscore') || localStorage.getItem('highscore') < this.wave){
+                localStorage.setItem('highscore', this.wave)
+            }
+            this.game.state.start('Menu', true);
         }
     }
 
     spawnItem() {
-        let _item = this.syzItems.create(this.game.rnd.integerInRange(0, this.world.width), 0, 'syz');
+        let _item = this.syzItems.create(this.game.rnd.integerInRange(0, this.world.width), 0, 'syz2');
         _item.body.bounce.set(0.3);
         _item.anchor.setTo(0.5);
-        _item.scale.setTo(0.52);
     }
 
     checkAlive() {
@@ -140,7 +151,7 @@ export class GameState extends Phaser.State {
             this.mode = 'normal';
             this.modeSignal.dispatch(this.mode);
             this.wave++;
-            this.spawnMobs(7 * this.wave, true);
+            this.spawnMobs(5 * this.wave, true);
             this.spawnItem();
         }
     }

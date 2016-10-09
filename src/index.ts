@@ -14,10 +14,10 @@ class Game extends Phaser.Game {
         let height = 144;
 
         super(width, height, Phaser.CANVAS, 'content', null)
-        this.state.add('Boot', BootState, false)
-        this.state.add('Splash', SplashState, false)
-        this.state.add('Menu', MenuState, false)
-        this.state.add('Game', GameState, false)
+        this.state.add('Boot', BootState)
+        this.state.add('Splash', SplashState)
+        this.state.add('Menu', MenuState)
+        this.state.add('Game', GameState)
 
         this.state.start('Boot')
     }
