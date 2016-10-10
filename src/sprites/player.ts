@@ -161,6 +161,7 @@ export class Player extends Phaser.Sprite {
             this.hitTick = this.game.time.now;
             if (live) live.kill();
             if (this.healthGroup.countLiving() < 1) {
+                this.body.velocity.x = 0;
                 this.gameOver = true;
                 return false;
             }

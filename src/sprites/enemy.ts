@@ -11,6 +11,7 @@ export class Enemy extends Phaser.Sprite {
     public attackTween;
     public isAttacking: boolean = false;
     public dead;
+    public deathAnim;
     constructor({ game, x, y, asset }) {
         super(game, x, y, asset)
 
@@ -19,18 +20,26 @@ export class Enemy extends Phaser.Sprite {
         this.speed = this.game.rnd.integerInRange(20, 50);
         this.direction = this.game.rnd.integerInRange(0, 1) == 0 ? -1 : 1;
         this.attackTween = this.game.add.tween(this).to({ y: this.y + 5 }, 400, 'Linear', false, 400, 0, true);
-        this.attackTween.onStart.add(() => { this.isAttacking = true });
+        this.attackTween.onStart.add(() => {
+            this.animations.stop('normal_run');
+            this.isAttacking = true;
+            this.animations.play('attack');
+        });
         this.attackTween.onComplete.add(() => { this.isAttacking = false });
         this.animations.add('normal_run', [3, 4, 5, 6, 7], 5);
-        this.animations.add('death', [8, 9, 10], 6);
+        this.deathAnim = this.animations.add('death', [8, 9], 6);
+        this.animations.add('attack', [2, 3], 4);
         if (this.direction == -1) this.flipSprite(1)
         this.dead = false;
+        this.deathAnim.onComplete.add(()=>{
+            this.angle = this.direction == 1 ? 90 : -90;
+            this.frame = 10;
+        })
     }
 
     update() {
         if (!this.dead) {
-
-            this.animations.play('normal_run');
+            if(!this.isAttacking)this.animations.play('normal_run');
             if (this.direction == -1) {
                 this.body.velocity.x = -this.speed;
                 if (this.body.x < 0) {
@@ -76,15 +85,14 @@ export class Enemy extends Phaser.Sprite {
     }
 
     killMe() {
-        if(this.dead)return false;
+        if (this.dead) return false;
         this.body.enable = false;
         this.dead = true;
-        console.log("KILL");
         this.speed = 0;
         this.body.velocity.x = 0;
         this.animations.play('death');
-        setTimeout(()=>{
-            this.kill();
+        setTimeout(() => {
+            this.destroy();
         }, 2000);
     }
 }

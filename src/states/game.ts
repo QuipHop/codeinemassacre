@@ -46,8 +46,8 @@ export class GameState extends Phaser.State {
         //ground
         this.game.create.texture('endTexture', ['000'], 1, 1, 1)
         this.game.create.texture('bloodTexture', ['5930ba'], 1, 1, 1)
-        this.ground = this.game.add.sprite(-100, this.game.world.height - 10, 'endTexture');
-        this.ground.width = this.game.world.width + 100
+        this.ground = this.game.add.sprite(-400, this.game.world.height - 10, 'endTexture');
+        this.ground.width = this.game.world.width + 400
         this.ground.height = 20;
         this.ground.alpha = 0;
         this.game.physics.enable(this.ground, Phaser.Physics.ARCADE);
@@ -160,7 +160,7 @@ export class GameState extends Phaser.State {
     }
 
     checkAlive() {
-        if (this.enemies.countLiving() == 0) {
+        if (this.countLiving() == 0) {
             this.mode = 'normal';
             this.modeSignal.dispatch(this.mode);
             this.wave++;
@@ -182,8 +182,17 @@ export class GameState extends Phaser.State {
     render() {
         if (window['__DEV__']) {
             this.game.debug.body(this.player);
+            this.enemies.forEach((e) => {
+                this.game.debug.body(e);
+            });
             this.player.weapon.debug(-100, 1000, true);
         }
     }
-
+    countLiving() {
+        let living = 0;
+        this.enemies.forEach((e) => {
+            if (!e.dead) living++;
+        })
+        return living;
+    }
 }
