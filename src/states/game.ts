@@ -15,6 +15,8 @@ export class GameState extends Phaser.State {
     syzItems;
     wave: number ;
     gameEnded: boolean ;
+    tripTheme;
+    normalTheme;
     init() {
         this.wave = 1;
         this.mode = 'normal';
@@ -23,6 +25,10 @@ export class GameState extends Phaser.State {
     preload() { }
 
     create() {
+        this.normalTheme = this.game.add.sound('normal_theme', 0.4, true)
+        this.tripTheme = this.game.add.sound('trip_theme', 0, true)
+        this.normalTheme.play();
+        this.tripTheme.play();
         this.modeSignal = new Phaser.Signal();
         this.modeBtn = this.game.input.keyboard.addKey(Phaser.Keyboard.M);
         this.modeBtn.onDown.add(() => {
@@ -99,6 +105,8 @@ export class GameState extends Phaser.State {
                     this.player.heal();
                     this.mode = 'wave';
                     this.modeSignal.dispatch(this.mode);
+                    this.normalTheme.volume = 0;
+                    this.tripTheme.volume = 0.6
                 });
             }
         }
@@ -153,6 +161,8 @@ export class GameState extends Phaser.State {
             this.wave++;
             this.spawnMobs(5 * this.wave, true);
             this.spawnItem();
+            this.normalTheme.volume = 0.5;
+            this.tripTheme.volume = 0;
         }
     }
 }

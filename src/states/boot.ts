@@ -43,6 +43,9 @@ export class BootState extends Phaser.State {
         this.load.audio('reload', './assets/sounds/reload.mp3')
         this.load.audio('shot', './assets/sounds/shot.mp3')
         this.load.audio('jump', './assets/sounds/jump.mp3')
+        this.load.audio('menu_theme', './assets/sounds/menu_theme.mp3')
+        this.load.audio('normal_theme', './assets/sounds/normal_theme.mp3')
+        this.load.audio('trip_theme', './assets/sounds/trip_theme.mp3')
     }
 
     render() {

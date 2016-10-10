@@ -17,6 +17,7 @@ export class MenuState extends Phaser.State {
     }
 
     create() {
+
         this.game.world.setBounds(0, 0, 160, 144)
         this.bg = this.game.make.sprite(0, 0, 'syz');
         this.bg.alpha = 0.3;
@@ -36,6 +37,8 @@ export class MenuState extends Phaser.State {
         if(!this.highscore)this.highscoreLabel.visible = false;
         this.startBtn.onDown.add(() => {
             this.game.state.start('Game', true);
+            this.game.sound.stopAll()
         }, this);
+        this.game.sound.play('menu_theme')
     }
 }
