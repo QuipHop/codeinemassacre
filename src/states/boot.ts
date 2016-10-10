@@ -27,6 +27,7 @@ export class BootState extends Phaser.State {
         this.load.image('loaderBar', './assets/images/loader-bar.png')
         this.load.image('bg', './assets/images/bg.jpg')
         this.load.image('guy', './assets/images/guy.png')
+        this.load.spritesheet('punk', './assets/images/punk.png', 43, 39)
         this.load.image('syz', './assets/images/syz.png')
         this.load.image('syz2', './assets/images/syz2.png')
         this.load.image('bg1', './assets/images/bg1.png')

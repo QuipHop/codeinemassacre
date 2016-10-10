@@ -27,7 +27,7 @@ export class GameState extends Phaser.State {
     preload() { }
 
     create() {
-        this.normalTheme = this.game.add.sound('normal_theme', 0.4, true)
+        this.normalTheme = this.game.add.sound('normal_theme', 0.5, true)
         this.tripTheme = this.game.add.sound('trip_theme', 0, true)
         this.normalTheme.play();
         this.tripTheme.play();
@@ -98,10 +98,11 @@ export class GameState extends Phaser.State {
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
                     this.game.sound.play('hitmob');
                     enemy.body.touching.left ? this.bloodEmit.setXSpeed(10, 150) : this.bloodEmit.setXSpeed(-10, -150);
+                    this.bloodEmit.setYSpeed(10, 50)
                     this.bloodEmit.emitX = enemy.body.x;
                     this.bloodEmit.emitY = enemy.body.y + 15;
                     this.bloodEmit.explode(1000, 10)
-                    enemy.kill();
+                    enemy.killMe()
                     bullet.kill();
                     this.checkAlive();
                 }, null, this);
@@ -130,9 +131,9 @@ export class GameState extends Phaser.State {
         for (let i = 0; i < value; i++) {
             let enemy = this.enemies.add(new Enemy({
                 game: this.game,
-                x: this.game.rnd.integerInRange(0, this.game.world.width),
+                x: this.game.rnd.integerInRange(0, this.game.world.width - 20),
                 y: this.game.world.height - 40,
-                asset: 'player'
+                asset: 'punk'
             }));
             this.player.signal.add(enemy.followPlayer, enemy);
             this.modeSignal.add(enemy.activate, enemy);

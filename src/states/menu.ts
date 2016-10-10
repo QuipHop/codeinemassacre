@@ -1,13 +1,14 @@
 import * as Phaser from 'phaser'
 
 export class MenuState extends Phaser.State {
-    playText;
-    label;
-    startBtn;
-    bg;
-    texture;
-    highscore;
-    highscoreLabel;
+    public playText;
+    public label;
+    public startBtn;
+    public bg;
+    public texture;
+    public highscore;
+    public highscoreLabel;
+    public music
     init() {
         this.highscore = localStorage.getItem('highscore')
     }
@@ -39,6 +40,7 @@ export class MenuState extends Phaser.State {
             this.game.state.start('Game', true);
             this.game.sound.stopAll();
         }, this);
-        this.game.sound.play('menu_theme')
+        this.music = this.game.sound.add('menu_theme', 1, true);
+        this.music.play();
     }
 }
