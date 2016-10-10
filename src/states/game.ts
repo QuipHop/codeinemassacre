@@ -4,19 +4,20 @@ import { Enemy } from '../sprites/enemy.ts'
 // import {setResponsiveWidth} from '../utils.ts'
 
 export class GameState extends Phaser.State {
-    player: Player;
-    bg;
-    ground;
-    enemies;
-    mode: string;
-    modeBtn;
-    modeSignal;
-    label;
-    syzItems;
-    wave: number ;
-    gameEnded: boolean ;
-    tripTheme;
-    normalTheme;
+    public player: Player;
+    public bg;
+    public ground;
+    public enemies;
+    public mode: string;
+    public modeBtn;
+    public modeSignal;
+    public label;
+    public syzItems;
+    public wave: number;
+    public gameEnded: boolean;
+    public tripTheme;
+    public normalTheme;
+    public gameOverMenu;
     init() {
         this.wave = 1;
         this.mode = 'normal';
@@ -33,10 +34,7 @@ export class GameState extends Phaser.State {
         this.modeBtn = this.game.input.keyboard.addKey(Phaser.Keyboard.M);
         this.modeBtn.onDown.add(() => {
             window['__DEV__'] == undefined ? window['__DEV__'] = true : window['__DEV__'] = undefined;
-            // this.mode == 'normal' ? this.mode = 'wave' : this.mode = 'normal';
-            // this.modeSignal.dispatch(this.mode);
         });
-
         this.game.world.setBounds(0, 0, 500, 180)
         this.game.physics.startSystem(Phaser.Physics.ARCADE)
         let bg4 = this.game.add.tileSprite(0, 0, 500, 180, 'bg4')
@@ -65,9 +63,7 @@ export class GameState extends Phaser.State {
         this.player.anchor.setTo(0.5, 0.5)
         this.game.physics.enable(this.player, Phaser.Physics.ARCADE);
         this.player.body.collideWorldBounds = true;
-        // this.player.body.gravity.y = 1000;
         this.player.body.maxVelocity.y = 500;
-        // this.player.body.setSize(20, 32, 5, 16);
         this.game.add.existing(this.player)
         this.game.camera.follow(this.player, Phaser.Camera.SHAKE_BOTH)
 
@@ -81,6 +77,8 @@ export class GameState extends Phaser.State {
         this.syzItems = this.game.add.group();
         this.syzItems.enableBody = true;
         this.spawnItem();
+
+        this.renderMenu();
     }
 
     update() {
@@ -109,6 +107,11 @@ export class GameState extends Phaser.State {
                     this.tripTheme.volume = 0.6
                 });
             }
+        } else {
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                this.game.sound.stopAll();
+                this.game.state.start('Menu', true);
+            }
         }
     }
 
@@ -127,25 +130,15 @@ export class GameState extends Phaser.State {
         }
     }
 
-    sendMode() {
-
-    }
-
-    render() {
-        if (window['__DEV__']) {
-            this.game.debug.body(this.player);
-            this.player.weapon.debug(-100, 1000, true);
-        }
-    }
 
     hitPlayer(player, monster) {
         if (player.takeHit(player, monster) == false) {
             this.gameEnded = true;
-            if(!localStorage.getItem('highscore') || localStorage.getItem('highscore') < this.wave){
+            this.gameOverMenu.visible = true;
+            if (!localStorage.getItem('highscore') || localStorage.getItem('highscore') < this.wave) {
                 localStorage.setItem('highscore', this.wave)
             }
-            this.game.sound.stopAll();
-            this.game.state.start('Menu', true);
+
         }
     }
 
@@ -166,4 +159,21 @@ export class GameState extends Phaser.State {
             this.tripTheme.volume = 0;
         }
     }
+
+    renderMenu() {
+        this.gameOverMenu = this.game.add.group();
+        let gameOverText = this.game.add.text(this.game.camera.width / 2, this.game.camera.height / 2, 'GAME OVER\nSCORE: ' + this.wave + '\n press start', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
+        gameOverText.anchor.setTo(0.5)
+        this.gameOverMenu.add(gameOverText);
+        this.gameOverMenu.fixedToCamera = true;
+        this.gameOverMenu.visible = false;
+    }
+
+    render() {
+        if (window['__DEV__']) {
+            this.game.debug.body(this.player);
+            this.player.weapon.debug(-100, 1000, true);
+        }
+    }
+
 }

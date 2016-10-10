@@ -18,15 +18,9 @@ export class Enemy extends Phaser.Sprite {
         this.speed = this.game.rnd.integerInRange(20, 50);
         this.destination = this.game.rnd.integerInRange(0, 1);
         this.tint = Math.random() * 0xffffff;
-        this.attackTween = this.game.add.tween(this).to({ y: this.y + 5 }, 400, Phaser.Linear, false, 400, 0, true);
+        this.attackTween = this.game.add.tween(this).to({ y: this.y + 5 }, 400, 'Linear', false, 400, 0, true);
         this.attackTween.onStart.add(() => { this.isAttacking = true });
         this.attackTween.onComplete.add(() => { this.isAttacking = false });
-        // this.attackTimer = this.game.time.create(false);
-        // this.attackTimer.loop(Phaser.Timer.SECOND * 1, () => {
-        //     console.log("ATTACK");
-        //     this.attack = true;
-        //     this.attackTimer.stop();
-        // }, this);
     }
 
     update() {
@@ -46,11 +40,6 @@ export class Enemy extends Phaser.Sprite {
                 if (!this.attackTween.isRunning) {
                     this.attackTween.start();
                 }
-                // if (!this.attackTimer.running) {
-                //     this.attackTimer.start();
-                // } else {
-                //     this.attack = false;
-                // }
             }
         }
     }
@@ -60,7 +49,6 @@ export class Enemy extends Phaser.Sprite {
 
     activate(mode) {
         this.mode = mode;
-        console.log(this.mode);
     }
 
 }

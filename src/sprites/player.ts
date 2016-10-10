@@ -27,9 +27,7 @@ export class Player extends Phaser.Sprite {
         this.fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         this.signal = new Phaser.Signal();
         let _sprite = this.game.create.texture('bulletTexture', ['0,0,0,0'], 2, 40, 0)
-        // _sprite.alpha = 0;
         this.weapon = game.add.weapon(1, _sprite);
-        // this.weapon.setBulletFrames(0, 80, true);
         this.weapon.bulletKillType = Phaser.Weapon.KILL_CAMERA_BOUNDS;
         this.weapon.bulletSpeed = 1000;
         this.weapon.fireRate = 800;
@@ -49,12 +47,11 @@ export class Player extends Phaser.Sprite {
         this.animations.add('trip_run');
         this.animations.add('trip_jump');
         this.animations.add('trip_fire');
-        this.hitTween = this.game.add.tween(this).to({ alpha: 0 }, 100, Phaser.Linear, false, 0, 5, true);
+        this.hitTween = this.game.add.tween(this).to({ alpha: 0 }, 100, 'Linear', false, 0, 5, true);
         this.healthGroup = this.game.add.group();
         for (let i = 0; i < this.health; i++) {
             let live = this.healthGroup.create(5 + i * 15, 10, 'syz2');
             live.anchor.setTo(0.5, 0.5);
-
         }
         this.healthGroup.fixedToCamera = true;
     }
@@ -152,7 +149,6 @@ export class Player extends Phaser.Sprite {
         if (monster.isAttacking && this.game.time.now - this.hitTick > 1000) {
             this.game.sound.play('hitmob');
             this.hitTween.start();
-            // console.log(this.healthGroup.countLiving(), this.healthGroup);
             let live = this.healthGroup.getAt(this.healthGroup.countLiving() - 1);
             this.hitTick = this.game.time.now;
             if (live) live.kill();

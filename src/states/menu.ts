@@ -37,7 +37,7 @@ export class MenuState extends Phaser.State {
         if(!this.highscore)this.highscoreLabel.visible = false;
         this.startBtn.onDown.add(() => {
             this.game.state.start('Game', true);
-            this.game.sound.stopAll()
+            this.game.sound.stopAll();
         }, this);
         this.game.sound.play('menu_theme')
     }
