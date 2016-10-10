@@ -144,6 +144,7 @@ export class GameState extends Phaser.State {
             if(!localStorage.getItem('highscore') || localStorage.getItem('highscore') < this.wave){
                 localStorage.setItem('highscore', this.wave)
             }
+            this.game.sound.stopAll();
             this.game.state.start('Menu', true);
         }
     }
