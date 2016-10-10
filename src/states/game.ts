@@ -18,6 +18,7 @@ export class GameState extends Phaser.State {
     public tripTheme;
     public normalTheme;
     public gameOverMenu;
+    public bloodEmit;
     init() {
         this.wave = 1;
         this.mode = 'normal';
@@ -44,6 +45,7 @@ export class GameState extends Phaser.State {
         let bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1')
         //ground
         this.game.create.texture('endTexture', ['000'], 1, 1, 1)
+        this.game.create.texture('bloodTexture', ['5930ba'], 1, 1, 1)
         this.ground = this.game.add.sprite(-100, this.game.world.height - 10, 'endTexture');
         this.ground.width = this.game.world.width + 100
         this.ground.height = 20;
@@ -78,7 +80,11 @@ export class GameState extends Phaser.State {
         this.syzItems.enableBody = true;
         this.spawnItem();
 
-        this.renderMenu();
+        this.bloodEmit = this.game.add.emitter(0, 0, 100);
+        this.bloodEmit.makeParticles('bloodTexture');
+        this.bloodEmit.maxParticleSpeed = new Phaser.Point(50, 25);
+        this.bloodEmit.minParticleSpeed = new Phaser.Point(-50, 25);
+        this.bloodEmit.lifespan = 1000;
     }
 
     update() {
@@ -91,6 +97,10 @@ export class GameState extends Phaser.State {
                 this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
                     this.game.sound.play('hitmob');
+                    enemy.body.touching.left ? this.bloodEmit.setXSpeed(10, 150) : this.bloodEmit.setXSpeed(-10, -150);
+                    this.bloodEmit.emitX = enemy.body.x;
+                    this.bloodEmit.emitY = enemy.body.y + 15;
+                    this.bloodEmit.explode(1000, 10)
                     enemy.kill();
                     bullet.kill();
                     this.checkAlive();
@@ -134,7 +144,7 @@ export class GameState extends Phaser.State {
     hitPlayer(player, monster) {
         if (player.takeHit(player, monster) == false) {
             this.gameEnded = true;
-            this.gameOverMenu.visible = true;
+            this.renderMenu();
             if (!localStorage.getItem('highscore') || localStorage.getItem('highscore') < this.wave) {
                 localStorage.setItem('highscore', this.wave)
             }
@@ -153,7 +163,7 @@ export class GameState extends Phaser.State {
             this.mode = 'normal';
             this.modeSignal.dispatch(this.mode);
             this.wave++;
-            this.spawnMobs(5 * this.wave, true);
+            this.spawnMobs(3 * this.wave, true);
             this.spawnItem();
             this.normalTheme.volume = 0.5;
             this.tripTheme.volume = 0;
@@ -166,7 +176,6 @@ export class GameState extends Phaser.State {
         gameOverText.anchor.setTo(0.5)
         this.gameOverMenu.add(gameOverText);
         this.gameOverMenu.fixedToCamera = true;
-        this.gameOverMenu.visible = false;
     }
 
     render() {

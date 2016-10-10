@@ -21,6 +21,7 @@ export class Enemy extends Phaser.Sprite {
         this.attackTween = this.game.add.tween(this).to({ y: this.y + 5 }, 400, 'Linear', false, 400, 0, true);
         this.attackTween.onStart.add(() => { this.isAttacking = true });
         this.attackTween.onComplete.add(() => { this.isAttacking = false });
+
     }
 
     update() {

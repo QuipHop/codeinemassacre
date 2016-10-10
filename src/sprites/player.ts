@@ -18,6 +18,7 @@ export class Player extends Phaser.Sprite {
     public walkAnimation_trip;
     public hitTween;
     public gameOver: boolean = false;
+    public shellEmit;
     constructor({ game, x, y, asset, bgs }) {
         super(game, x, y, asset)
         this.bgs = bgs;
@@ -40,6 +41,7 @@ export class Player extends Phaser.Sprite {
             this.game.sound.play('reload');
             setTimeout(()=>{
                 this.game.sound.play('reload');
+                this.shellEmit.emitParticle(this.body.x, this.body.y);
             }, 500);
         })
         this.animations.add('normal_run');
@@ -54,6 +56,11 @@ export class Player extends Phaser.Sprite {
             live.anchor.setTo(0.5, 0.5);
         }
         this.healthGroup.fixedToCamera = true;
+        this.shellEmit = this.game.add.emitter(0, 0, 1);
+        this.shellEmit.makeParticles('bloodTexture');
+        this.shellEmit.maxParticleSpeed = new Phaser.Point(-10, 5);
+        this.shellEmit.minParticleSpeed = new Phaser.Point(10, 5);
+        this.shellEmit.lifespan = 500;
     }
 
     update() {
@@ -143,6 +150,7 @@ export class Player extends Phaser.Sprite {
     onModeChanged(mode) {
         this.mode = mode;
         this.mode == 'wave' ? this.loadTexture('trip_run') : this.loadTexture('normal_run');
+        this.game.camera.flash(0x5930ba, 500);
     }
 
     takeHit(player, monster) {
