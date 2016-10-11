@@ -19,6 +19,7 @@ export class GameState extends Phaser.State {
     public normalTheme;
     public gameOverMenu;
     public bloodEmit;
+    public headGroup;
     init() {
         this.wave = 1;
         this.mode = 'normal';
@@ -45,7 +46,7 @@ export class GameState extends Phaser.State {
         let bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1')
         //ground
         this.game.create.texture('endTexture', ['000'], 1, 1, 1)
-        this.game.create.texture('bloodTexture', ['#5930ba'], 1, 1, 0)
+        this.game.create.texture('bloodTexture', ['5930ba'], 1, 1, 1)
         this.ground = this.game.add.sprite(-400, this.game.world.height - 10, 'endTexture');
         this.ground.width = this.game.world.width + 400
         this.ground.height = 20;
@@ -71,6 +72,10 @@ export class GameState extends Phaser.State {
 
         this.enemies = this.game.add.group()
         this.enemies.enableBody = true;
+
+        this.headGroup = this.game.add.group();
+        this.headGroup.enableBody = true;
+        this.headGroup.setAll('body.maxVelocity', 10);
         this.spawnMobs(5, false);
         this.game.physics.arcade.gravity.y = 1000;
         this.label = this.game.add.text(this.game.world.centerX, 80, ' GRAB SIZZURP ! ', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
@@ -80,44 +85,27 @@ export class GameState extends Phaser.State {
         this.syzItems.enableBody = true;
         this.spawnItem();
 
-        let graphics = this.game.add.graphics(0, 0);
-        graphics.beginFill(0x5930ba);
-        graphics.drawRect(0, 0, 2, 2);
-        let bloodsprite = this.game.add.sprite(400, 300, graphics.generateTexture());
-
-        this.bloodEmit = this.game.add.emitter(0, 0, 0);
-        this.game.physics.arcade.enable(this.bloodEmit);
-        this.bloodEmit.makeParticles(bloodsprite.key, 0, 50, true);
+        this.bloodEmit = this.game.add.emitter(0, 0, 100);
+        this.bloodEmit.makeParticles('bloodTexture');
+        this.bloodEmit.maxParticleSpeed = new Phaser.Point(50, 25);
+        this.bloodEmit.minParticleSpeed = new Phaser.Point(-50, 25);
         this.bloodEmit.lifespan = 1000;
-        graphics.destroy();
+
     }
 
     update() {
         this.game.physics.arcade.collide(this.player, this.ground);
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
-        this.game.physics.arcade.collide(this.bloodEmit, this.ground, (blood, ground) => {
-            //DOESN'T WORK
-            blood.body.maxVelocity.y = 0;
-            blood.body.maxVelocity.x = 0;
+        this.game.physics.arcade.collide(this.headGroup, this.ground);
+        this.game.physics.arcade.collide(this.headGroup, this.player, (player, head)=>{
+            head.angle += 20;
         });
-        this.game.physics.arcade.collide(this.player.shellEmit, this.ground;
-
         if (!this.gameEnded) {
             if (this.mode == 'wave') {
                 this.label.text = " WAVE " + this.wave
                 this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
-                this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
-                    this.game.sound.play('hitmob');
-                    enemy.body.touching.left ? this.bloodEmit.setXSpeed(10, 150) : this.bloodEmit.setXSpeed(-10, -150);
-                    this.bloodEmit.setYSpeed(40, 70)
-                    this.bloodEmit.emitX = enemy.body.x;
-                    this.bloodEmit.emitY = enemy.body.y + 15;
-                    this.bloodEmit.explode(300, 20)
-                    enemy.killMe()
-                    bullet.kill();
-                    this.checkAlive();
-                }, null, this);
+                this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, this.hitMob, null, this);
 
             } else {
                 this.label.text = " GRAB SIZZURP ! "
@@ -140,12 +128,14 @@ export class GameState extends Phaser.State {
 
     spawnMobs(value: number, res: boolean) {
         this.enemies.removeAll();
+        this.headGroup.removeAll();
         for (let i = 0; i < value; i++) {
+            let asset = this.game.rnd.integerInRange(0,1) == 0 ? 'punk' : 'baby';
             let enemy = this.enemies.add(new Enemy({
                 game: this.game,
                 x: this.game.rnd.integerInRange(0, this.game.world.width - 20),
                 y: this.game.world.height - 40,
-                asset: 'punk'
+                asset: asset
             }));
             this.player.signal.add(enemy.followPlayer, enemy);
             this.modeSignal.add(enemy.activate, enemy);
@@ -206,5 +196,22 @@ export class GameState extends Phaser.State {
             if (!e.dead) living++;
         })
         return living;
+    }
+
+    hitMob(enemy, bullet){
+        this.game.sound.play('hitmob');
+        enemy.body.touching.left ? this.bloodEmit.setXSpeed(10, 150) : this.bloodEmit.setXSpeed(-10, -150);
+        this.bloodEmit.setYSpeed(10, 50)
+        this.bloodEmit.emitX = enemy.body.x;
+        this.bloodEmit.emitY = enemy.body.y + 15;
+        this.bloodEmit.explode(1000, 10)
+        if(enemy.key == 'baby'){
+            let _head = this.headGroup.create(enemy.body.x, enemy.body.y, 'head');
+            _head.anchor.setTo(0.5);
+            _head.body.maxVelocity = 10;
+        }
+        enemy.killMe()
+        bullet.kill();
+        this.checkAlive();
     }
 }

@@ -12,9 +12,39 @@ export class Enemy extends Phaser.Sprite {
     public isAttacking: boolean = false;
     public dead;
     public deathAnim;
-    constructor({ game, x, y, asset }) {
+    private assets = {
+        punk: {
+            run: {
+                frames: [4, 5, 6, 7],
+                fs: 6
+            },
+            death: {
+                frames: [8, 9],
+                fs: 6
+            },
+            attack: {
+                frames: [2, 3],
+                fs: 4
+            }
+        },
+        baby: {
+            run: {
+                frames: [0, 1, 2, 3, 4],
+                fs: 6
+            },
+            death: {
+                frames: [10, 11, 12],
+                fs: 6
+            },
+            attack: {
+                frames: [6, 7, 9, 9, 10],
+                fs: 5
+            }
+        }
+    };
+    constructor({ game, x, y, asset}) {
         super(game, x, y, asset)
-
+        console.log("asset", asset)
         this.game = game
         this.anchor.setTo(0.5, 0.5)
         this.speed = this.game.rnd.integerInRange(20, 50);
@@ -26,20 +56,20 @@ export class Enemy extends Phaser.Sprite {
             this.animations.play('attack');
         });
         this.attackTween.onComplete.add(() => { this.isAttacking = false });
-        this.animations.add('normal_run', [ 4, 5, 6, 7], 6);
-        this.deathAnim = this.animations.add('death', [8, 9], 6);
-        this.animations.add('attack', [2, 3], 4);
+        this.animations.add('normal_run', this.assets[asset].run.frames, this.assets[asset].run.fs);
+        this.deathAnim = this.animations.add('death', this.assets[asset].death.frames, this.assets[asset].death.fs);
+        this.animations.add('attack', this.assets[asset].attack.frames, this.assets[asset].attack.fs);
         if (this.direction == -1) this.flipSprite(1)
         this.dead = false;
-        this.deathAnim.onComplete.add(()=>{
+        this.deathAnim.onComplete.add(() => {
             this.angle = this.direction == 1 ? 90 : -90;
-            this.frame = 10;
+            this.frame = (asset == 'punk' ? 10 : 13)
         })
     }
 
     update() {
         if (!this.dead) {
-            if(!this.isAttacking)this.animations.play('normal_run');
+            if (!this.isAttacking) this.animations.play('normal_run');
             if (this.direction == -1) {
                 this.body.velocity.x = -this.speed;
                 if (this.body.x < 0) {
