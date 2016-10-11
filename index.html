@@ -15,10 +15,12 @@
             margin: 0;
             padding: 0;
         }
+
         @font-face {
             font-family: 'gameboy';
             src: url('assets/fonts/Early_GameBoy.ttf');
         }
+
         canvas {
             image-rendering: optimizeSpeed;
             /* Older versions of FF          */
@@ -32,16 +34,29 @@
             /* Awesome future-browsers       */
             -ms-interpolation-mode: nearest-neighbor;
             /* IE                            */
-            padding-top: 80px;
             margin: 0 auto;
             transform: scale(2);
+            border: 1px solid #000;
+            border-radius: 5px;
+        }
+
+        #content {
+            padding-top: 195px;
+            width: 580px;
+            background: url(./assets/images/back.jpg) center 0 no-repeat;
+            display: block;
+            margin: 0 auto;
+            float: none;
+            height: 950px;
+            background-size: contain;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="content"></div>
+    <div id="content">
+    </div>
 
     <script src="lib/phaser.min.js"></script>
     <script src="dist/bundle.js"></script>
