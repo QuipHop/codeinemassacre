@@ -27,7 +27,7 @@ export class GameState extends Phaser.State {
     preload() { }
 
     create() {
-        this.normalTheme = this.game.add.sound('normal_theme', 0.5, true)
+        this.normalTheme = this.game.add.sound('normal_theme', 0.3, true)
         this.tripTheme = this.game.add.sound('trip_theme', 0, true)
         this.normalTheme.play();
         this.tripTheme.play();
@@ -45,7 +45,7 @@ export class GameState extends Phaser.State {
         let bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1')
         //ground
         this.game.create.texture('endTexture', ['000'], 1, 1, 1)
-        this.game.create.texture('bloodTexture', ['5930ba'], 1, 1, 1)
+        this.game.create.texture('bloodTexture', ['#5930ba'], 1, 1, 0)
         this.ground = this.game.add.sprite(-400, this.game.world.height - 10, 'endTexture');
         this.ground.width = this.game.world.width + 400
         this.ground.height = 20;
@@ -80,17 +80,29 @@ export class GameState extends Phaser.State {
         this.syzItems.enableBody = true;
         this.spawnItem();
 
-        this.bloodEmit = this.game.add.emitter(0, 0, 100);
-        this.bloodEmit.makeParticles('bloodTexture');
-        this.bloodEmit.maxParticleSpeed = new Phaser.Point(50, 25);
-        this.bloodEmit.minParticleSpeed = new Phaser.Point(-50, 25);
+        let graphics = this.game.add.graphics(0, 0);
+        graphics.beginFill(0x5930ba);
+        graphics.drawRect(0, 0, 2, 2);
+        let bloodsprite = this.game.add.sprite(400, 300, graphics.generateTexture());
+
+        this.bloodEmit = this.game.add.emitter(0, 0, 0);
+        this.game.physics.arcade.enable(this.bloodEmit);
+        this.bloodEmit.makeParticles(bloodsprite.key, 0, 50, true);
         this.bloodEmit.lifespan = 1000;
+        graphics.destroy();
     }
 
     update() {
         this.game.physics.arcade.collide(this.player, this.ground);
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
+        this.game.physics.arcade.collide(this.bloodEmit, this.ground, (blood, ground) => {
+            //DOESN'T WORK
+            blood.body.maxVelocity.y = 0;
+            blood.body.maxVelocity.x = 0;
+        });
+        this.game.physics.arcade.collide(this.player.shellEmit, this.ground;
+
         if (!this.gameEnded) {
             if (this.mode == 'wave') {
                 this.label.text = " WAVE " + this.wave
@@ -98,10 +110,10 @@ export class GameState extends Phaser.State {
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, (enemy, bullet) => {
                     this.game.sound.play('hitmob');
                     enemy.body.touching.left ? this.bloodEmit.setXSpeed(10, 150) : this.bloodEmit.setXSpeed(-10, -150);
-                    this.bloodEmit.setYSpeed(10, 50)
+                    this.bloodEmit.setYSpeed(40, 70)
                     this.bloodEmit.emitX = enemy.body.x;
                     this.bloodEmit.emitY = enemy.body.y + 15;
-                    this.bloodEmit.explode(1000, 10)
+                    this.bloodEmit.explode(300, 20)
                     enemy.killMe()
                     bullet.kill();
                     this.checkAlive();
@@ -166,7 +178,7 @@ export class GameState extends Phaser.State {
             this.wave++;
             this.spawnMobs(3 * this.wave, true);
             this.spawnItem();
-            this.normalTheme.volume = 0.5;
+            this.normalTheme.volume = 0.3;
             this.tripTheme.volume = 0;
         }
     }

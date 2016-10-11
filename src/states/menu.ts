@@ -18,7 +18,7 @@ export class MenuState extends Phaser.State {
     }
 
     create() {
-
+        this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.SPACEBAR);
         this.game.world.setBounds(0, 0, 160, 144)
         this.bg = this.game.make.sprite(0, 0, 'syz');
         this.bg.alpha = 0.3;
