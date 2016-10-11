@@ -27,7 +27,7 @@ export class GameState extends Phaser.State {
     preload() { }
 
     create() {
-        this.normalTheme = this.game.add.sound('normal_theme', 0.5, true)
+        this.normalTheme = this.game.add.sound('normal_theme', 0.3, true)
         this.tripTheme = this.game.add.sound('trip_theme', 0, true)
         this.normalTheme.play();
         this.tripTheme.play();
@@ -166,7 +166,7 @@ export class GameState extends Phaser.State {
             this.wave++;
             this.spawnMobs(3 * this.wave, true);
             this.spawnItem();
-            this.normalTheme.volume = 0.5;
+            this.normalTheme.volume = 0.3;
             this.tripTheme.volume = 0;
         }
     }

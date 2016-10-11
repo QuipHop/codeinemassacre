@@ -6,7 +6,7 @@ export class BootState extends Phaser.State {
     fontsReady: boolean
 
     init() {
-        this.stage.backgroundColor = '#EDEEC9'
+        this.stage.backgroundColor = '#faa8d0'
         this.fontsReady = false
         this.fontsLoaded = this.fontsLoaded.bind(this)
         this.game.stage.smoothed = false
@@ -20,7 +20,7 @@ export class BootState extends Phaser.State {
         //     active: this.fontsLoaded
         // })
 
-        let text = this.add.text(this.world.centerX, this.world.centerY, 'LOADING', { font: "16px 'gameboy'", fill: '#dddddd', align: 'center' })
+        let text = this.add.text(this.world.centerX, this.world.centerY, 'LOADING', { font: "16px 'gameboy'", fill: '#5930ba', align: 'center' })
         text.anchor.setTo(0.5, 0.5)
 
         this.load.image('loaderBg', './assets/images/loader-bg.png')

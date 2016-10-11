@@ -26,7 +26,7 @@ export class Enemy extends Phaser.Sprite {
             this.animations.play('attack');
         });
         this.attackTween.onComplete.add(() => { this.isAttacking = false });
-        this.animations.add('normal_run', [3, 4, 5, 6, 7], 5);
+        this.animations.add('normal_run', [ 4, 5, 6, 7], 6);
         this.deathAnim = this.animations.add('death', [8, 9], 6);
         this.animations.add('attack', [2, 3], 4);
         if (this.direction == -1) this.flipSprite(1)
