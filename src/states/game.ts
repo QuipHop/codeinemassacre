@@ -20,6 +20,7 @@ export class GameState extends Phaser.State {
     public gameOverMenu;
     public bloodEmit;
     public headGroup;
+    public backGroup = {};
     init() {
         this.wave = 1;
         this.mode = 'normal';
@@ -38,12 +39,26 @@ export class GameState extends Phaser.State {
             window['__DEV__'] == undefined ? window['__DEV__'] = true : window['__DEV__'] = undefined;
         });
         this.game.world.setBounds(0, 0, 500, 180)
-        this.game.physics.startSystem(Phaser.Physics.ARCADE)
-        let bg4 = this.game.add.tileSprite(0, 0, 500, 180, 'bg4')
-        bg4.fixedToCamera = true;
-        let bg3 = this.game.add.tileSprite(0, 0, 500, 180, 'bg3')
-        let bg2 = this.game.add.tileSprite(-20, 0, 500, 180, 'bg2')
-        let bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1')
+        this.game.physics.startSystem(Phaser.Physics.ARCADE);
+        this.backGroup.bg4 = this.game.add.tileSprite(0, 0, 500, 180, 'bg4');
+        this.backGroup.bg4.fixedToCamera = true;
+        this.backGroup.bg3 = this.game.add.tileSprite(0, 0, 500, 180, 'bg3')
+        this.backGroup.bg2 = this.game.add.tileSprite(-20, 0, 500, 180, 'bg2')
+        // this.backGroup.ptero = this.game.add.sprite(0,0,'ptero');
+        this.backGroup.road = this.game.add.sprite(0, 0, 'road');
+        this.backGroup.tenticle = this.game.add.sprite(10, this.game.world.height - 100, 'tenticle');
+        this.backGroup.tenticle.animations.add('move');
+        this.backGroup.tenticle.visible = false;
+        this.backGroup.bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1', 0)
+        this.backGroup.bg1.animations.add('glitch');
+
+        this.backGroup.ptero = this.game.add.sprite(-70, this.game.world.centerY,'ptero');
+        this.backGroup.ptero.animations.add('fly');
+        this.backGroup.ptero.play('fly', 6);
+        this.backGroup.ptero._tween = this.game.add.tween(this.backGroup.ptero).to({ x: this.game.world.width + 50}, 4000, Phaser.Easing.Sinusoidal.InOut, false);
+        this.backGroup.ptero._tween.onComplete.add(()=>{
+            this.x = -70;
+        });
         //ground
         this.game.create.texture('endTexture', ['000'], 1, 1, 1)
         this.game.create.texture('bloodTexture', ['5930ba'], 1, 1, 1)
@@ -60,7 +75,7 @@ export class GameState extends Phaser.State {
             x: this.game.world.centerX,
             y: this.game.world.centerY,
             asset: 'normal_run',
-            bgs: [bg2, bg3]
+            bgs: [this.backGroup.bg2, this.backGroup.bg3]
         })
         this.modeSignal.add(this.player.onModeChanged, this.player);
         this.player.anchor.setTo(0.5, 0.5)
@@ -75,7 +90,7 @@ export class GameState extends Phaser.State {
 
         this.headGroup = this.game.add.group();
         this.headGroup.enableBody = true;
-        this.headGroup.setAll('body.maxVelocity', 10);
+        this.game.physics.enable(this.headGroup, Phaser.Physics.ARCADE);
         this.spawnMobs(5, false);
         this.game.physics.arcade.gravity.y = 1000;
         this.label = this.game.add.text(this.game.world.centerX, 80, ' GRAB SIZZURP ! ', { font: "12px 'gameboy'", fill: '#5930ba', align: 'center', backgroundColor: "#faa8d0" })
@@ -98,16 +113,23 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
         this.game.physics.arcade.collide(this.headGroup, this.ground);
-        this.game.physics.arcade.collide(this.headGroup, this.player, (player, head)=>{
-            head.angle += 20;
+        this.game.physics.arcade.collide(this.headGroup, this.player, (player, head) => {
+            head.body.touching.left ? head.angle += 20 : head.angle -= 20;
         });
         if (!this.gameEnded) {
             if (this.mode == 'wave') {
+                this.backGroup.ptero._tween.start();
+                this.backGroup.ptero.animations.play('fly');
+                this.backGroup.tenticle.visible = true;
+                this.backGroup.tenticle.animations.play('move', 2);
+                this.backGroup.bg1.animations.play('glitch',1, true);
                 this.label.text = " WAVE " + this.wave
                 this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, this.hitMob, null, this);
 
             } else {
+                this.backGroup.bg1.animations.stop('glitch');
+                this.backGroup.bg1.frame = 0;
                 this.label.text = " GRAB SIZZURP ! "
                 this.game.physics.arcade.overlap(this.player, this.syzItems, (player, item) => {
                     item.kill();
@@ -130,7 +152,7 @@ export class GameState extends Phaser.State {
         this.enemies.removeAll();
         this.headGroup.removeAll();
         for (let i = 0; i < value; i++) {
-            let asset = this.game.rnd.integerInRange(0,1) == 0 ? 'punk' : 'baby';
+            let asset = this.game.rnd.integerInRange(0, 1) == 0 ? 'punk' : 'baby';
             let enemy = this.enemies.add(new Enemy({
                 game: this.game,
                 x: this.game.rnd.integerInRange(0, this.game.world.width - 20),
@@ -170,6 +192,7 @@ export class GameState extends Phaser.State {
             this.spawnItem();
             this.normalTheme.volume = 0.3;
             this.tripTheme.volume = 0;
+            this.backGroup.tenticle.visible = false;
         }
     }
 
@@ -198,17 +221,18 @@ export class GameState extends Phaser.State {
         return living;
     }
 
-    hitMob(enemy, bullet){
+    hitMob(enemy, bullet) {
         this.game.sound.play('hitmob');
         enemy.body.touching.left ? this.bloodEmit.setXSpeed(10, 150) : this.bloodEmit.setXSpeed(-10, -150);
         this.bloodEmit.setYSpeed(10, 50)
         this.bloodEmit.emitX = enemy.body.x;
         this.bloodEmit.emitY = enemy.body.y + 15;
         this.bloodEmit.explode(1000, 10)
-        if(enemy.key == 'baby'){
+        if (enemy.key == 'baby') {
             let _head = this.headGroup.create(enemy.body.x, enemy.body.y, 'head');
             _head.anchor.setTo(0.5);
-            _head.body.maxVelocity = 10;
+            _head.body.maxVelocity.x = 30;
+            _head.body.bounce.set(0.5);
         }
         enemy.killMe()
         bullet.kill();

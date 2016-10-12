@@ -44,7 +44,6 @@ export class Enemy extends Phaser.Sprite {
     };
     constructor({ game, x, y, asset}) {
         super(game, x, y, asset)
-        console.log("asset", asset)
         this.game = game
         this.anchor.setTo(0.5, 0.5)
         this.speed = this.game.rnd.integerInRange(20, 50);

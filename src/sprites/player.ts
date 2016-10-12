@@ -149,12 +149,19 @@ export class Player extends Phaser.Sprite {
     }
     onModeChanged(mode) {
         this.mode = mode;
-        this.mode == 'wave' ? this.loadTexture('trip_run') : this.loadTexture('normal_run');
+        if(this.mode == 'wave'){
+            this.bgs[0].loadTexture('bg2_trip');
+            this.bgs[1].loadTexture('bg3_trip');
+            this.loadTexture('trip_run') : this.loadTexture('normal_run');
+        } else {
+            this.bgs[0].loadTexture('bg2');
+            this.bgs[1].loadTexture('bg3');
+        }
         this.game.camera.flash(0x5930ba, 500);
     }
 
     takeHit(player, monster) {
-        if (monster.isAttacking && this.game.time.now - this.hitTick > 1000) {
+        if (monster.isAttacking && monster.body.touching[this.direction == -1 ? 'left' : 'right'] && this.game.time.now - this.hitTick > 1000) {
             this.game.sound.play('hitmob');
             this.hitTween.start();
             let live = this.healthGroup.getAt(this.healthGroup.countLiving() - 1);
