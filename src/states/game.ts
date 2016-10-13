@@ -29,6 +29,7 @@ export class GameState extends Phaser.State {
     preload() { }
 
     create() {
+        this.game.physics.startSystem(Phaser.Physics.ARCADE);
         this.normalTheme = this.game.add.sound('normal_theme', 0.3, true)
         this.tripTheme = this.game.add.sound('trip_theme', 0, true)
         this.normalTheme.play();
@@ -39,7 +40,6 @@ export class GameState extends Phaser.State {
             window['__DEV__'] == undefined ? window['__DEV__'] = true : window['__DEV__'] = undefined;
         });
         this.game.world.setBounds(0, 0, 500, 180)
-        this.game.physics.startSystem(Phaser.Physics.ARCADE);
         this.backGroup.bg4 = this.game.add.tileSprite(0, 0, 500, 180, 'bg4');
         this.backGroup.bg4.fixedToCamera = true;
         this.backGroup.bg3 = this.game.add.tileSprite(0, 0, 500, 180, 'bg3')
@@ -50,14 +50,19 @@ export class GameState extends Phaser.State {
         this.backGroup.tenticle.animations.add('move');
         this.backGroup.tenticle.visible = false;
         this.backGroup.bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1', 0)
-        this.backGroup.bg1.animations.add('glitch');
+        this.backGroup.bg1.animations.add('glitch',[1,2,3,4]);
 
-        this.backGroup.ptero = this.game.add.sprite(-70, this.game.world.centerY,'ptero');
+        this.backGroup.ptero = this.game.add.sprite(-70, this.game.rnd.integerInRange(0, 7)*10,'ptero');
         this.backGroup.ptero.animations.add('fly');
         this.backGroup.ptero.play('fly', 6);
-        this.backGroup.ptero._tween = this.game.add.tween(this.backGroup.ptero).to({ x: this.game.world.width + 50}, 4000, Phaser.Easing.Sinusoidal.InOut, false);
-        this.backGroup.ptero._tween.onComplete.add(()=>{
-            this.x = -70;
+        this.backGroup.ptero._tween = this.game.add.tween(this.backGroup.ptero).to({ x: this.game.world.width + this.backGroup.ptero.width}, 4000, Phaser.Easing.Sinusoidal.InOut, false, 2000 , 0 ,true);
+        this.backGroup.ptero._tween.onRepeat.add(()=>{
+            this.backGroup.ptero.scale.x *= -1;
+            var rnd = this.game.rnd.integerInRange(-10,2) * 10;
+            var res = this.backGroup.ptero.y += rnd;
+            if(res + rnd < this.game.world.height - 200 && res + rnd > 0){
+                this.backGroup.ptero.y += rnd;
+            }
         });
         //ground
         this.game.create.texture('endTexture', ['000'], 1, 1, 1)
@@ -113,13 +118,16 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
         this.game.physics.arcade.collide(this.headGroup, this.ground);
-        this.game.physics.arcade.collide(this.headGroup, this.player, (player, head) => {
+        this.game.physics.arcade.collide(this.player, this.headGroup, (player, head) => {
             head.body.touching.left ? head.angle += 20 : head.angle -= 20;
+        }, (head)=>{
+            head.body.velocity.x = 0;
         });
         if (!this.gameEnded) {
             if (this.mode == 'wave') {
                 this.backGroup.ptero._tween.start();
                 this.backGroup.ptero.animations.play('fly');
+                this.backGroup.ptero.alpha = 1;
                 this.backGroup.tenticle.visible = true;
                 this.backGroup.tenticle.animations.play('move', 2);
                 this.backGroup.bg1.animations.play('glitch',1, true);
@@ -128,6 +136,8 @@ export class GameState extends Phaser.State {
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, this.hitMob, null, this);
 
             } else {
+                this.backGroup.tenticle.alpha = 0;
+                this.backGroup.ptero.alpha = 0;
                 this.backGroup.bg1.animations.stop('glitch');
                 this.backGroup.bg1.frame = 0;
                 this.label.text = " GRAB SIZZURP ! "
@@ -152,13 +162,14 @@ export class GameState extends Phaser.State {
         this.enemies.removeAll();
         this.headGroup.removeAll();
         for (let i = 0; i < value; i++) {
-            let asset = this.game.rnd.integerInRange(0, 1) == 0 ? 'punk' : 'baby';
-            let enemy = this.enemies.add(new Enemy({
+            var asset = this.game.rnd.integerInRange(0, 1) == 0 ? 'punk' : 'baby';
+            var enemy = new Enemy({
                 game: this.game,
-                x: this.game.rnd.integerInRange(0, this.game.world.width - 20),
+                x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
                 y: this.game.world.height - 40,
                 asset: asset
-            }));
+            });
+            this.enemies.add(enemy);
             this.player.signal.add(enemy.followPlayer, enemy);
             this.modeSignal.add(enemy.activate, enemy);
             this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
@@ -178,7 +189,7 @@ export class GameState extends Phaser.State {
     }
 
     spawnItem() {
-        let _item = this.syzItems.create(this.game.rnd.integerInRange(0, this.world.width), 0, 'syz2');
+        var _item = this.syzItems.create(this.game.rnd.integerInRange(0, this.world.width), 10, 'syz2');
         _item.body.bounce.set(0.3);
         _item.anchor.setTo(0.5);
     }
@@ -231,8 +242,9 @@ export class GameState extends Phaser.State {
         if (enemy.key == 'baby') {
             let _head = this.headGroup.create(enemy.body.x, enemy.body.y, 'head');
             _head.anchor.setTo(0.5);
-            _head.body.maxVelocity.x = 30;
+            _head.body.maxVelocity.x = 50;
             _head.body.bounce.set(0.5);
+
         }
         enemy.killMe()
         bullet.kill();
