@@ -16,7 +16,7 @@ export class Enemy extends Phaser.Sprite {
         punk: {
             run: {
                 frames: [4, 5, 6, 7],
-                fs: 6
+                fs: 4
             },
             death: {
                 frames: [8, 9],
@@ -34,7 +34,7 @@ export class Enemy extends Phaser.Sprite {
             },
             death: {
                 frames: [10, 11, 12],
-                fs: 6
+                fs: 5
             },
             attack: {
                 frames: [6, 7, 9, 9, 10],
@@ -43,16 +43,16 @@ export class Enemy extends Phaser.Sprite {
         },
         girl: {
             run: {
-                frames: [1, 2, 3, 4, 5],
+                frames: [0 ,1, 2, 3, 4],
                 fs: 6
             },
             death: {
-                frames: [12, 13, 14, 15],
-                fs: 6
+                frames: [11, 12, 13, 14],
+                fs: 8
             },
             attack: {
-                frames: [6, 7, 8, 9, 10, 11],
-                fs: 5
+                frames: [ 5, 6, 7, 8, 9, 10],
+                fs: 6
             }
         }
     };
@@ -142,8 +142,8 @@ export class Enemy extends Phaser.Sprite {
         this.speed = 0;
         // this.body.velocity.x = 0;
         this.animations.play('death');
-        setTimeout(() => {
-            this.destroy();
-        }, 2000);
+        // setTimeout(() => {
+        //     this.destroy();
+        // }, 2000);
     }
 }
