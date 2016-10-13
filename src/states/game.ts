@@ -51,12 +51,13 @@ export class GameState extends Phaser.State {
         this.backGroup.tenticle.animations.add('move');
         this.backGroup.tenticle.visible = false;
         this.backGroup.bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1', 0)
-        var bgAnim = this.backGroup.bg1.animations.add('glitch', [1, 2, 3, 4], 7, true);
+        var bgAnim = this.backGroup.bg1.animations.add('glitch', [1, 2, 3, 4], 6);
         bgAnim.onComplete.add(() => {
+            console.log("here");
             bgAnim.stop('glitch', 0);
-            setInterval(()=>{
+            setTimeout(() => {
                 bgAnim.play();
-            }, this.game.rnd.integerInRange(3,6) * 1000);
+            }, (this.game.rnd.integerInRange(2, 7) * 1000));
         });
 
         this.backGroup.ptero = this.game.add.sprite(-70, this.game.rnd.integerInRange(0, 7) * 10, 'ptero');
@@ -142,7 +143,7 @@ export class GameState extends Phaser.State {
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, this.hitMob, null, this);
 
             } else {
-                this.backGroup.tenticle.alpha = 0;
+                this.backGroup.tenticle.visible = false;
                 this.backGroup.ptero.alpha = 0;
                 this.backGroup.bg1.animations.stop('glitch');
                 this.backGroup.bg1.frame = 0;
@@ -154,7 +155,7 @@ export class GameState extends Phaser.State {
                     this.modeSignal.dispatch(this.mode);
                     this.normalTheme.volume = 0;
                     this.tripTheme.volume = 0.6
-                    this.backGroup.bg1.animations.play('glitch', 6, false);
+                    this.backGroup.bg1.animations.play('glitch', 6);
                 });
             }
         } else {
