@@ -25,7 +25,7 @@ export class Enemy extends Phaser.Sprite {
             attack: {
                 frames: [2, 3],
                 fs: 4
-            }
+            },
         },
         baby: {
             run: {
@@ -38,6 +38,20 @@ export class Enemy extends Phaser.Sprite {
             },
             attack: {
                 frames: [6, 7, 9, 9, 10],
+                fs: 5
+            }
+        },
+        girl: {
+            run: {
+                frames: [1, 2, 3, 4, 5],
+                fs: 6
+            },
+            death: {
+                frames: [12, 13, 14, 15],
+                fs: 6
+            },
+            attack: {
+                frames: [6, 7, 8, 9, 10, 11],
                 fs: 5
             }
         }
@@ -60,9 +74,18 @@ export class Enemy extends Phaser.Sprite {
         this.animations.add('attack', this.assets[asset].attack.frames, this.assets[asset].attack.fs);
         if (this.direction == -1) this.flipSprite(1)
         this.dead = false;
+        this.deathAnim.onStart.add(() => {
+            this.body.velocity.x = -this.direction * 50;
+        });
         this.deathAnim.onComplete.add(() => {
-            this.angle = this.direction == 1 ? 90 : -90;
-            this.frame = (asset == 'punk' ? 10 : 13)
+            this.body.velocity.x = 0;
+            if (asset == 'girl') {
+
+            } else {
+                this.angle = this.direction == 1 ? 90 : -90;
+                this.frame = (asset == 'punk' ? 10 : 13)
+            }
+            this.body.enable = false;
         })
     }
 
@@ -115,10 +138,9 @@ export class Enemy extends Phaser.Sprite {
 
     killMe() {
         if (this.dead) return false;
-        this.body.enable = false;
         this.dead = true;
         this.speed = 0;
-        this.body.velocity.x = 0;
+        // this.body.velocity.x = 0;
         this.animations.play('death');
         setTimeout(() => {
             this.destroy();

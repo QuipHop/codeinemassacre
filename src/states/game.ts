@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser'
 import { Player } from '../sprites/player.ts'
 import { Enemy } from '../sprites/enemy.ts'
+import {generateSpriteKey} from '../utils.ts'
 // import {setResponsiveWidth} from '../utils.ts'
 
 export class GameState extends Phaser.State {
@@ -50,17 +51,23 @@ export class GameState extends Phaser.State {
         this.backGroup.tenticle.animations.add('move');
         this.backGroup.tenticle.visible = false;
         this.backGroup.bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1', 0)
-        this.backGroup.bg1.animations.add('glitch',[1,2,3,4]);
+        var bgAnim = this.backGroup.bg1.animations.add('glitch', [1, 2, 3, 4], 7, true);
+        bgAnim.onComplete.add(() => {
+            bgAnim.stop('glitch', 0);
+            setInterval(()=>{
+                bgAnim.play();
+            }, this.game.rnd.integerInRange(3,6) * 1000);
+        });
 
-        this.backGroup.ptero = this.game.add.sprite(-70, this.game.rnd.integerInRange(0, 7)*10,'ptero');
+        this.backGroup.ptero = this.game.add.sprite(-70, this.game.rnd.integerInRange(0, 7) * 10, 'ptero');
         this.backGroup.ptero.animations.add('fly');
         this.backGroup.ptero.play('fly', 6);
-        this.backGroup.ptero._tween = this.game.add.tween(this.backGroup.ptero).to({ x: this.game.world.width + this.backGroup.ptero.width}, 4000, Phaser.Easing.Sinusoidal.InOut, false, 2000 , 0 ,true);
-        this.backGroup.ptero._tween.onRepeat.add(()=>{
+        this.backGroup.ptero._tween = this.game.add.tween(this.backGroup.ptero).to({ x: this.game.world.width + this.backGroup.ptero.width }, 4000, Phaser.Easing.Sinusoidal.InOut, false, 2000, 0, true);
+        this.backGroup.ptero._tween.onRepeat.add(() => {
             this.backGroup.ptero.scale.x *= -1;
-            var rnd = this.game.rnd.integerInRange(-10,2) * 10;
+            var rnd = this.game.rnd.integerInRange(-10, 2) * 10;
             var res = this.backGroup.ptero.y += rnd;
-            if(res + rnd < this.game.world.height - 200 && res + rnd > 0){
+            if (res + rnd < this.game.world.height - 200 && res + rnd > 0) {
                 this.backGroup.ptero.y += rnd;
             }
         });
@@ -120,7 +127,7 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.headGroup, this.ground);
         this.game.physics.arcade.collide(this.player, this.headGroup, (player, head) => {
             head.body.touching.left ? head.angle += 20 : head.angle -= 20;
-        }, (head)=>{
+        }, (head) => {
             head.body.velocity.x = 0;
         });
         if (!this.gameEnded) {
@@ -130,7 +137,6 @@ export class GameState extends Phaser.State {
                 this.backGroup.ptero.alpha = 1;
                 this.backGroup.tenticle.visible = true;
                 this.backGroup.tenticle.animations.play('move', 2);
-                this.backGroup.bg1.animations.play('glitch',1, true);
                 this.label.text = " WAVE " + this.wave
                 this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, this.hitMob, null, this);
@@ -148,6 +154,7 @@ export class GameState extends Phaser.State {
                     this.modeSignal.dispatch(this.mode);
                     this.normalTheme.volume = 0;
                     this.tripTheme.volume = 0.6
+                    this.backGroup.bg1.animations.play('glitch', 6, false);
                 });
             }
         } else {
@@ -162,12 +169,12 @@ export class GameState extends Phaser.State {
         this.enemies.removeAll();
         this.headGroup.removeAll();
         for (let i = 0; i < value; i++) {
-            var asset = this.game.rnd.integerInRange(0, 1) == 0 ? 'punk' : 'baby';
+            // var asset = this.game.rnd.integerInRange(0, 2) == 0 ? 'punk' : 'baby';
             var enemy = new Enemy({
                 game: this.game,
                 x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
                 y: this.game.world.height - 40,
-                asset: asset
+                asset: generateSpriteKey()
             });
             this.enemies.add(enemy);
             this.player.signal.add(enemy.followPlayer, enemy);

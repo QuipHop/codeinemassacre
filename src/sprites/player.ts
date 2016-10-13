@@ -152,8 +152,9 @@ export class Player extends Phaser.Sprite {
         if(this.mode == 'wave'){
             this.bgs[0].loadTexture('bg2_trip');
             this.bgs[1].loadTexture('bg3_trip');
-            this.loadTexture('trip_run') : this.loadTexture('normal_run');
+            this.loadTexture('trip_run');
         } else {
+            this.loadTexture('normal_run');
             this.bgs[0].loadTexture('bg2');
             this.bgs[1].loadTexture('bg3');
         }

@@ -1,4 +1,3 @@
-import * as Phaser from 'phaser'
 // import * as WebFont from 'webfontloader'
 
 export class BootState extends Phaser.State {
@@ -28,6 +27,7 @@ export class BootState extends Phaser.State {
         this.load.image('guy', './assets/images/guy.png')
         this.load.spritesheet('punk', './assets/images/punk.png', 30, 39)
         this.load.spritesheet('baby', './assets/images/baby.png', 21, 24)
+        this.load.spritesheet('girl', './assets/images/girl.png', 27, 37)
         this.load.image('syz', './assets/images/syz.png')
         this.load.image('syz2', './assets/images/syz2.png')
         this.load.spritesheet('bg1', './assets/images/bg_sprite.png', 500, 180)
