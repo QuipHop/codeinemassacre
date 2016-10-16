@@ -22,6 +22,8 @@ export class GameState extends Phaser.State {
     public bloodEmit;
     public headGroup;
     public backGroup = {};
+    public releaseTimeot;
+    public boss;
     init() {
         this.wave = 1;
         this.mode = 'normal';
@@ -53,9 +55,8 @@ export class GameState extends Phaser.State {
         this.backGroup.bg1 = this.game.add.tileSprite(0, 0, 500, 180, 'bg1', 0)
         var bgAnim = this.backGroup.bg1.animations.add('glitch', [1, 2, 3, 4], 6);
         bgAnim.onComplete.add(() => {
-            console.log("here");
             bgAnim.stop('glitch', 0);
-            setTimeout(() => {
+            this.releaseTimeot = setTimeout(() => {
                 bgAnim.play();
             }, (this.game.rnd.integerInRange(2, 7) * 1000));
         });
@@ -118,7 +119,6 @@ export class GameState extends Phaser.State {
         this.bloodEmit.maxParticleSpeed = new Phaser.Point(50, 25);
         this.bloodEmit.minParticleSpeed = new Phaser.Point(-50, 25);
         this.bloodEmit.lifespan = 1000;
-
     }
 
     update() {
@@ -126,6 +126,9 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
         this.game.physics.arcade.collide(this.headGroup, this.ground);
+        this.game.physics.arcade.collide(this.boss.ratEmit, this.ground, (ground, rat)=>{
+            // console.log("OK");
+        });
         this.game.physics.arcade.collide(this.player, this.headGroup, (player, head) => {
             head.body.touching.left ? head.angle += 20 : head.angle -= 20;
         }, (head) => {
@@ -141,7 +144,6 @@ export class GameState extends Phaser.State {
                 this.label.text = " WAVE " + this.wave
                 this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, this.hitMob, null, this);
-
             } else {
                 this.backGroup.tenticle.visible = false;
                 this.backGroup.ptero.alpha = 0;
@@ -159,6 +161,7 @@ export class GameState extends Phaser.State {
                 });
             }
         } else {
+            clearTimeout(this.releaseTimeot);
             if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
                 this.game.sound.stopAll();
                 this.game.state.start('Menu', true);
@@ -169,19 +172,31 @@ export class GameState extends Phaser.State {
     spawnMobs(value: number, res: boolean) {
         this.enemies.removeAll();
         this.headGroup.removeAll();
-        for (let i = 0; i < value; i++) {
-            // var asset = this.game.rnd.integerInRange(0, 2) == 0 ? 'punk' : 'baby';
-            var enemy = new Enemy({
-                game: this.game,
-                x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
-                y: this.game.world.height - 40,
-                asset: generateSpriteKey()
-            });
-            this.enemies.add(enemy);
-            this.player.signal.add(enemy.followPlayer, enemy);
-            this.modeSignal.add(enemy.activate, enemy);
-            this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
-        }
+        // for (let i = 0; i < value; i++) {
+        //     var enemy = new Enemy({
+        //         game: this.game,
+        //         x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
+        //         y: this.game.world.height - 40,
+        //         asset: generateSpriteKey()
+        //     });
+        // this.enemies.add(enemy);
+        // this.player.signal.add(enemy.followPlayer, enemy);
+        // this.modeSignal.add(enemy.activate, enemy);
+        // this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
+        // }
+        var enemy = new Enemy({
+            game: this.game,
+            x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
+            y: this.game.world.height - 100,
+            asset: 'boss',
+            speed: 20,
+            health: 5
+        });
+        this.enemies.add(enemy);
+        this.player.signal.add(enemy.followPlayer, enemy);
+        this.modeSignal.add(enemy.activate, enemy);
+        this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
+        this.boss = enemy;
     }
 
 

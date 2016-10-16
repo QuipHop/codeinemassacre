@@ -99,7 +99,6 @@ export class Player extends Phaser.Sprite {
                 this.animations.frame = 0;
             }
         }
-
     }
 
     fire() {
@@ -162,7 +161,7 @@ export class Player extends Phaser.Sprite {
     }
 
     takeHit(player, monster) {
-        if (monster.isAttacking && monster.body.touching[this.direction == -1 ? 'left' : 'right'] && this.game.time.now - this.hitTick > 1000) {
+        if (monster.isAttacking  && this.game.time.now - this.hitTick > 1000) {
             this.game.sound.play('hitmob');
             this.hitTween.start();
             let live = this.healthGroup.getAt(this.healthGroup.countLiving() - 1);
