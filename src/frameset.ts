@@ -47,7 +47,7 @@ export const Frameset = {
             fs: 4
         },
         death: {
-            frames: [17, 18, 19, 20, 21, 22],
+            frames: [19, 20, 21, 22],
             fs: 8
         },
         attack: {
@@ -60,7 +60,7 @@ export const Frameset = {
         },
         cast: {
             frames: [2, 3, 4, 5, 6, 7],
-            fs: 6
+            fs: 4
         }
     }
 };

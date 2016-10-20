@@ -112,13 +112,13 @@ export class GameState extends Phaser.State {
         this.label._pulseTween = this.game.add.tween(this.label).to({ fontSize: 13 }, 600, Phaser.Easing.Quadratic.In, true, 0, -1);
         this.syzItems = this.game.add.group();
         this.syzItems.enableBody = true;
-        this.spawnItem();
 
         this.bloodEmit = this.game.add.emitter(0, 0, 100);
         this.bloodEmit.makeParticles('bloodTexture');
         this.bloodEmit.maxParticleSpeed = new Phaser.Point(50, 25);
         this.bloodEmit.minParticleSpeed = new Phaser.Point(-50, 25);
         this.bloodEmit.lifespan = 1000;
+        this.spawnItem();
     }
 
     update() {
@@ -126,14 +126,14 @@ export class GameState extends Phaser.State {
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);
         this.game.physics.arcade.collide(this.headGroup, this.ground);
-        this.game.physics.arcade.collide(this.boss.ratEmit, this.ground, (ground, rat)=>{
-            // console.log("OK");
-        });
         this.game.physics.arcade.collide(this.player, this.headGroup, (player, head) => {
             head.body.touching.left ? head.angle += 20 : head.angle -= 20;
         }, (head) => {
             head.body.velocity.x = 0;
         });
+        if(this.boss){
+            this.game.physics.arcade.collide(this.boss.ratEmit, this.ground, (ground, rat)=>{});
+        }
         if (!this.gameEnded) {
             if (this.mode == 'wave') {
                 this.backGroup.ptero._tween.start();
@@ -144,6 +144,9 @@ export class GameState extends Phaser.State {
                 this.label.text = " WAVE " + this.wave
                 this.game.physics.arcade.overlap(this.player, this.enemies, this.hitPlayer, null, this);
                 this.game.physics.arcade.overlap(this.enemies, this.player.weapon.bullets, this.hitMob, null, this);
+                if(this.boss){
+                    this.game.physics.arcade.overlap(this.player, this.boss.ratEmit, this.hitPlayer, null, this);
+                }
             } else {
                 this.backGroup.tenticle.visible = false;
                 this.backGroup.ptero.alpha = 0;
@@ -158,7 +161,9 @@ export class GameState extends Phaser.State {
                     this.normalTheme.volume = 0;
                     this.tripTheme.volume = 0.6
                     this.backGroup.bg1.animations.play('glitch', 6);
+                    this.spawnBoss();
                 });
+
             }
         } else {
             clearTimeout(this.releaseTimeot);
@@ -172,31 +177,20 @@ export class GameState extends Phaser.State {
     spawnMobs(value: number, res: boolean) {
         this.enemies.removeAll();
         this.headGroup.removeAll();
-        // for (let i = 0; i < value; i++) {
-        //     var enemy = new Enemy({
-        //         game: this.game,
-        //         x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
-        //         y: this.game.world.height - 40,
-        //         asset: generateSpriteKey()
-        //     });
-        // this.enemies.add(enemy);
-        // this.player.signal.add(enemy.followPlayer, enemy);
-        // this.modeSignal.add(enemy.activate, enemy);
-        // this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
-        // }
-        var enemy = new Enemy({
-            game: this.game,
-            x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
-            y: this.game.world.height - 100,
-            asset: 'boss',
-            speed: 20,
-            health: 5
-        });
-        this.enemies.add(enemy);
-        this.player.signal.add(enemy.followPlayer, enemy);
-        this.modeSignal.add(enemy.activate, enemy);
-        this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
-        this.boss = enemy;
+        for (let i = 0; i < value; i++) {
+            var enemy = new Enemy({
+                game: this.game,
+                x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
+                y: this.game.world.height - 40,
+                asset: generateSpriteKey()
+            });
+            this.enemies.add(enemy);
+            this.player.signal.add(enemy.followPlayer, enemy);
+            this.modeSignal.add(enemy.activate, enemy);
+            this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
+        }
+
+        
     }
 
 
@@ -212,7 +206,8 @@ export class GameState extends Phaser.State {
     }
 
     spawnItem() {
-        var _item = this.syzItems.create(this.game.rnd.integerInRange(0, this.world.width), 10, 'syz2');
+        var _pos = (this.player.body.x >= this.game.world.centerX ? 100 : this.game.world.width - 100);
+        var _item = this.syzItems.create(_pos, 10, 'syz2');
         _item.body.bounce.set(0.3);
         _item.anchor.setTo(0.5);
     }
@@ -220,13 +215,15 @@ export class GameState extends Phaser.State {
     checkAlive() {
         if (this.countLiving() == 0) {
             this.mode = 'normal';
+            if(this.boss)this.boss.ratEmit.removeAll();
+            this.boss = null;
             this.modeSignal.dispatch(this.mode);
             this.wave++;
             this.spawnMobs(3 * this.wave, true);
-            this.spawnItem();
             this.normalTheme.volume = 0.3;
             this.tripTheme.volume = 0;
             this.backGroup.tenticle.visible = false;
+            this.spawnItem();
         }
     }
 
@@ -262,15 +259,33 @@ export class GameState extends Phaser.State {
         this.bloodEmit.emitX = enemy.body.x;
         this.bloodEmit.emitY = enemy.body.y + 15;
         this.bloodEmit.explode(1000, 10)
-        if (enemy.key == 'baby') {
-            let _head = this.headGroup.create(enemy.body.x, enemy.body.y, 'head');
+
+        enemy.killMe()
+        if (enemy.key == 'baby' || enemy.key == 'boss' && enemy.dead) {
+            let _head = this.headGroup.create(enemy.body.x, enemy.body.y, enemy.key + 'head');
             _head.anchor.setTo(0.5);
             _head.body.maxVelocity.x = 50;
             _head.body.bounce.set(0.5);
-
         }
-        enemy.killMe()
         bullet.kill();
         this.checkAlive();
+    }
+
+    spawnBoss(){
+        if(this.wave % 3 == 0){
+            this.boss = new Enemy({
+                game: this.game,
+                x: this.game.rnd.integerInRange(0, this.game.world.width - 40),
+                y: this.game.world.height - 100,
+                asset: 'boss',
+                speed: 20,
+                health: this.wave * 10,
+                playerBody: this.player.body
+            });
+            this.enemies.add(this.boss);
+            this.player.signal.add(this.boss.followPlayer, this.boss);
+            this.modeSignal.add(this.boss.activate, this.boss);
+            this.game.physics.enable(this.boss, Phaser.Physics.ARCADE);
+        }
     }
 }

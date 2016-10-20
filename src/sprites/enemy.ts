@@ -19,7 +19,10 @@ export class Enemy extends Phaser.Sprite {
     public isCasting: boolean = false;
     public castTween;
     private ratEmit;
-    constructor({ game, x, y, asset, speed, health}, private assets = Frameset) {
+    public castCompleteInterval;
+    private castTimeout: number = 10;
+    public blowdust;
+    constructor({ game, x, y, asset, speed, health, playerBody}, private assets = Frameset) {
         super(game, x, y, asset)
         this.game = game
         this.health = health || 1;
@@ -27,9 +30,8 @@ export class Enemy extends Phaser.Sprite {
         this.mode = 'normal';
         this.speed = speed || this.game.rnd.integerInRange(20, 50);
         this.direction = this.game.rnd.integerInRange(0, 1) == 0 ? -1 : 1;
-        this.attackTween = this.game.add.tween(this).to({ y: asset == 'boss' ? this.y : this.y + 5 }, 400, Phaser.Easing.Bounce.Out, false, 400, 0, true);
+        this.attackTween = this.game.add.tween(this).to({ y: asset == 'boss' ? this.y : this.y + 5 }, 400, Phaser.Easing.Bounce.Out, false, asset == 'boss' ? 600 : 400, 0, true);
         this.attackTween.onStart.add(() => {
-            this.animations.stop('normal_run');
             this.isAttacking = true;
             this.animations.play('attack');
         });
@@ -51,46 +53,55 @@ export class Enemy extends Phaser.Sprite {
             this.body.velocity.x = 0;
             this.body.enable = false;
             if (asset == 'girl') {
-
+            } else if (asset == 'boss'){
+                this.angle = this.direction == 1 ? -90 : 90;
+                this.anchor.set(0.7);
+                this.frame = 22;
+                this.ratEmit.destroy();
+                this.castTimer.destroy();
+                this.game.camera.shake(0.05, 400);
             } else {
                 this.angle = this.direction == 1 ? 90 : -90;
                 this.frame = (asset == 'punk' ? 10 : 13)
             }
         })
         if (asset == 'boss') {
-            this.castTimer = this.game.time.create(false);
-            this.ratEmit = this.game.add.emitter(0, 0, 10);
+            this.playerBody = playerBody;
+            this.mode = 'wave';
+            this.ratEmit = this.game.add.emitter(0, 0, 8);
             this.game.physics.enable(this.ratEmit, Phaser.Physics.ARCADE);
             this.ratEmit.enableBody = true;
-            this.ratEmit.makeParticles('mouse', 0, 10, true);
+            this.ratEmit.makeParticles('mouse', 0, 8, true);
             this.ratEmit.setRotation(0, 0);
-            // this.ratEmit.lifespan = 20000;
-            this.castTimer.loop(Phaser.Timer.SECOND * 5, () => {
-                this.isCasting = true;
-                this.body.velocity.x = 0;
-                this.animations.play('cast');
+            this.ratEmit.children.forEach((c) => {
+                c.animations.add('run');
+                c.animations.play('run', 15, true);
+            });
+            this.castTween = this.animations.add('cast', this.assets[asset].cast.frames, this.assets[asset].cast.fs);
+            this.castTween.onStart.add(() => {
                 this.castTimer.pause();
                 let min = -50;
                 let max = -100;
                 if (this.direction == 1) {
                     min = 50;
                     max = 100;
-                    this.ratEmit.children.forEach((c)=>{
-                        c.scale.x *= -1;
-                    });
+                    this.ratEmit._maxParticleScale.x = -1;
+                    this.ratEmit._minParticleScale.x = -0.99; //a bit hacky :D
                 }
+                this.ratEmit.forEach((c) => { c.maxParticleScaleX = -1 });
                 this.ratEmit.setXSpeed(min, max);
                 this.ratEmit.emitX = this.direction == 1 ? -10 : this.game.world.width + 10;
                 this.ratEmit.emitY = this.body.y;
-                this.ratEmit.start(false, 10000, 20);
-            }, this);
-            this.castTween = this.animations.add('cast', this.assets[asset].cast.frames, this.assets[asset].cast.fs);
+                this.ratEmit.minRotation = this.ratEmit.maxRotation = 0;
+                this.ratEmit.start(false, 10000, 5);
+            });
             this.castTween.onComplete.add(() => {
+                this.ratEmit.on = false;
                 this.castCompleteInterval = setTimeout(() => {
                     this.isCasting = false;
                     this.body.velocity.x = this.speed;
                     this.castTimer.resume();
-                }, 5000);
+                }, 3000);
             }, null, this)
         }
     }
@@ -115,7 +126,9 @@ export class Enemy extends Phaser.Sprite {
                     }
                     break;
                 case 'wave':
-                    this.castTimer.start();
+                    if (!this.castTimer && this.key == 'boss') {
+                        this.initCastTimer();
+                    }
                     if (!this.isAttacking && !this.isCasting) {
                         if (this.body.position.x <= this.playerBody.position.x - this.playerBody.halfWidth) {
                             this.body.velocity.x = +this.speed;
@@ -128,7 +141,7 @@ export class Enemy extends Phaser.Sprite {
                             this.direction = -1;
                             this.animations.play('normal_run');
                         } else {
-                            this.animations.stop('normal_run');
+                            this.animations.stop();
                             // if (!this.attackTween.isRunning) {
                             this.attackTween.start();
                             // }
@@ -157,14 +170,29 @@ export class Enemy extends Phaser.Sprite {
         if (this.dead) return false;
         this.health--;
         if (this.health <= 0) {
+            this.animations.stop('attack');
+            this.animations.stop('normal_run');
+            this.animations.play('death');
             this.dead = true;
             this.speed = 0;
-            // this.body.velocity.x = 0;
-            this.animations.play('death');
+            this.isAttacking = false;
+            this.isCasting = false;
+            if(this.castCompleteInterval)clearInterval(this.castCompleteInterval);
             // setTimeout(() => {
             //     this.destroy();
             // }, 2000);
         }
-        clearInterval(this.castCompleteInterval);
+    }
+
+    initCastTimer() {
+        if(!this.dead){
+            this.castTimer = this.game.time.create(false);
+            this.castTimer.loop(Phaser.Timer.SECOND * this.castTimeout, () => {
+                this.isCasting = true;
+                this.body.velocity.x = 0;
+                this.animations.play('cast');
+            }, this);
+            this.castTimer.start();
+        }
     }
 }

@@ -19,6 +19,7 @@ export class Player extends Phaser.Sprite {
     public hitTween;
     public gameOver: boolean = false;
     public shellEmit;
+    public bloodGroup;
     constructor({ game, x, y, asset, bgs }) {
         super(game, x, y, asset)
         this.bgs = bgs;
@@ -61,6 +62,7 @@ export class Player extends Phaser.Sprite {
         this.shellEmit.maxParticleSpeed = new Phaser.Point(-10, 5);
         this.shellEmit.minParticleSpeed = new Phaser.Point(10, 5);
         this.shellEmit.lifespan = 500;
+        this.bloodGroup = this.game.add.group();
     }
 
     update() {
@@ -128,7 +130,7 @@ export class Player extends Phaser.Sprite {
                 if (this.key != 'normal_run') this.loadTexture('normal_run');
                 this.animations.play('normal_run', 8);
             }
-                break;
+            break;
             case 'jump':
             this.game.sound.play('jump');
             if (this.mode == 'wave') {
@@ -138,12 +140,12 @@ export class Player extends Phaser.Sprite {
                 if (this.key != 'normal_jump') this.loadTexture('normal_jump');
                 this.animations.play('normal_jump', 8);
             }
-                break;
+            break;
             case 'fire':
-                this.game.sound.play('shot');
-                if (this.key != 'trip_fire') this.loadTexture('trip_fire');
-                this.animations.play('trip_fire', 10);
-                break;
+            this.game.sound.play('shot');
+            if (this.key != 'trip_fire') this.loadTexture('trip_fire');
+            this.animations.play('trip_fire', 10);
+            break;
         }
     }
     onModeChanged(mode) {
@@ -153,6 +155,7 @@ export class Player extends Phaser.Sprite {
             this.bgs[1].loadTexture('bg3_trip');
             this.loadTexture('trip_run');
         } else {
+            this.bloodGroup.removeAll();
             this.loadTexture('normal_run');
             this.bgs[0].loadTexture('bg2');
             this.bgs[1].loadTexture('bg3');
@@ -161,23 +164,43 @@ export class Player extends Phaser.Sprite {
     }
 
     takeHit(player, monster) {
-        if (monster.isAttacking  && this.game.time.now - this.hitTick > 1000) {
-            this.game.sound.play('hitmob');
-            this.hitTween.start();
-            let live = this.healthGroup.getAt(this.healthGroup.countLiving() - 1);
-            this.hitTick = this.game.time.now;
-            if (live) live.kill();
-            if (this.healthGroup.countLiving() < 1) {
-                this.body.velocity.x = 0;
-                this.gameOver = true;
-                return false;
+        if ((monster.isAttacking && monster.key != 'mouse' )) {
+            return this.hit();
+        }
+        if(monster.key == 'mouse' && monster.alive){
+            if(monster.body.touching.up && player.body.touching.down){
+                this.body.velocity.y = -200;
+                monster.kill();
+                var blood = this.bloodGroup.create(monster.body.x, monster.body.y, 'bloodstain');
+                return true;
+            }
+            if(player.body.touching.left || player.body.touching.right){
+                return this.hit();
             }
         }
+
     }
 
     heal() {
         this.game.sound.play('pickup');
         if (this.healthGroup.countLiving() >= 3) return false;
         let live = this.healthGroup.getFirstDead().revive();
+    }
+
+    hit() {
+        if(this.game.time.now - this.hitTick > 2000){
+            this.game.sound.play('hitmob');
+            this.hitTween.start();
+            let live = this.healthGroup.getAt(this.healthGroup.countLiving() - 1);
+            this.hitTick = this.game.time.now;
+            if (live) {
+                live.kill();
+            }
+            if (this.healthGroup.countLiving() < 1) {
+                this.body.velocity.x = 0;
+                this.gameOver = true;
+                return false;
+            }
+        }
     }
 }
