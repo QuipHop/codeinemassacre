@@ -172,11 +172,11 @@ export class Enemy extends Phaser.Sprite {
         if (this.health <= 0) {
             this.animations.stop('attack');
             this.animations.stop('normal_run');
-            this.animations.play('death');
             this.dead = true;
             this.speed = 0;
             this.isAttacking = false;
             this.isCasting = false;
+            this.animations.play('death');
             if(this.castCompleteInterval)clearInterval(this.castCompleteInterval);
             // setTimeout(() => {
             //     this.destroy();
