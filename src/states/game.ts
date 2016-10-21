@@ -122,6 +122,10 @@ export class GameState extends Phaser.State {
     }
 
     update() {
+        if (!this.game.camera.atLimit.x) {
+            this.backGroup.bg2.tilePosition.x = this.game.camera.x * -0.06;
+            this.backGroup.bg3.tilePosition.x = this.game.camera.x * -0.02;
+        }
         this.game.physics.arcade.collide(this.player, this.ground);
         this.game.physics.arcade.collide(this.enemies, this.ground);
         this.game.physics.arcade.collide(this.syzItems, this.ground);

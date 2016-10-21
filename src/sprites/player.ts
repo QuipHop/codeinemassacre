@@ -72,10 +72,10 @@ export class Player extends Phaser.Sprite {
                 this.sendSignal();
                 this.body.velocity.x = -this.speed;
                 this.flipSprite(-1);
-                if (!this.game.camera.atLimit.x) {
-                    this.bgs[0].tilePosition.x += 0.3;
-                    this.bgs[1].tilePosition.x += 0.1;
-                }
+                // if (!this.game.camera.atLimit.x) {
+                //     this.bgs[0].tilePosition.x += 0.3;
+                //     this.bgs[1].tilePosition.x += 0.1;
+                // }
                 this.playAnimation('run');
             }
             else if (this.cursors.right.isDown) {
@@ -83,10 +83,10 @@ export class Player extends Phaser.Sprite {
                 this.sendSignal();
                 this.body.velocity.x = +this.speed;
                 this.flipSprite(1);
-                if (!this.game.camera.atLimit.x) {
-                    this.bgs[0].tilePosition.x -= 0.3;
-                    this.bgs[1].tilePosition.x -= 0.1;
-                }
+                // if (!this.game.camera.atLimit.x) {
+                //     this.bgs[0].tilePosition.x -= 0.3;
+                //     this.bgs[1].tilePosition.x -= 0.1;
+                // }
                 this.playAnimation('run');
             }
             if (this.cursors.up.isDown && this.body.touching.down && this.game.time.now > this.jumpTimer) {
@@ -164,7 +164,7 @@ export class Player extends Phaser.Sprite {
     }
 
     takeHit(player, monster) {
-        if ((monster.isAttacking && monster.key != 'mouse' )) {
+        if (monster.isAttacking && monster.key != 'mouse' ) {
             return this.hit();
         }
         if(monster.key == 'mouse' && monster.alive){
