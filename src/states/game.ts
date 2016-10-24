@@ -33,6 +33,8 @@ export class GameState extends Phaser.State {
 
     create() {
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
+		this.game.create.texture('bloodTexture', ['5930ba'], 1, 1, 1)
+		this.game.create.texture('endTexture', ['000'], 1, 1, 1)
         this.normalTheme = this.game.add.sound('normal_theme', 0.3, true)
         this.tripTheme = this.game.add.sound('trip_theme', 0, true)
         this.normalTheme.play();
@@ -73,17 +75,7 @@ export class GameState extends Phaser.State {
                 this.backGroup.ptero.y += rnd;
             }
         });
-        //ground
-        this.game.create.texture('endTexture', ['000'], 1, 1, 1)
-        this.game.create.texture('bloodTexture', ['5930ba'], 1, 1, 1)
-        this.ground = this.game.add.sprite(-400, this.game.world.height - 10, 'endTexture');
-        this.ground.width = this.game.world.width + 400
-        this.ground.height = 20;
-        this.ground.alpha = 0;
-        this.game.physics.enable(this.ground, Phaser.Physics.ARCADE);
-        this.ground.enableBody = true;
-        this.ground.body.allowGravity = false;
-        this.ground.body.immovable = true;
+
         this.player = new Player({
             game: this.game,
             x: this.game.world.centerX,
@@ -119,6 +111,15 @@ export class GameState extends Phaser.State {
         this.bloodEmit.minParticleSpeed = new Phaser.Point(-50, 25);
         this.bloodEmit.lifespan = 1000;
         this.spawnItem();
+		//ground
+		this.ground = this.game.add.sprite(-400, this.game.world.height - 10, 'endTexture');
+		this.ground.width = this.game.world.width + 400
+		this.ground.height = 20;
+		this.ground.alpha = 0;
+		this.game.physics.enable(this.ground, Phaser.Physics.ARCADE);
+		this.ground.enableBody = true;
+		this.ground.body.allowGravity = false;
+		this.ground.body.immovable = true;
     }
 
     update() {
@@ -194,7 +195,7 @@ export class GameState extends Phaser.State {
             this.game.physics.enable(enemy, Phaser.Physics.ARCADE);
         }
 
-        
+
     }
 
 
