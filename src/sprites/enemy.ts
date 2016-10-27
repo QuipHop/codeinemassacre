@@ -61,6 +61,7 @@ export class Enemy extends Phaser.Sprite {
                 this.castTimer.destroy();
                 this.game.camera.shake(0.05, 400);
             } else {
+                this.anchor.set(0.3);
                 this.angle = this.direction == 1 ? 90 : -90;
                 this.frame = (asset == 'punk' ? 10 : 13)
             }

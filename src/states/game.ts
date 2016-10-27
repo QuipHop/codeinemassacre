@@ -172,10 +172,12 @@ export class GameState extends Phaser.State {
             }
         } else {
             clearTimeout(this.releaseTimeot);
-            if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-                this.game.sound.stopAll();
-                this.game.state.start('Menu', true);
-            }
+            setTimeout(()=>{
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                    this.game.sound.stopAll();
+                    this.game.state.start('Menu', true);
+                }  
+            }, 3000);
         }
     }
 
